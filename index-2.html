@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sozialraum Berliner Platz</title>
+<style>
+/* Layout: Stadtplan links als Arbeitsfläche, rechts ein Registerpanel wie ein Planungsordner; auf dem Telefon untereinander */
+:root{
+  --bg:#EEF1EF; --paper:#F8FAF8; --fg:#17222A; --muted:#5A6870; --line:#D3DAD7; --accent:#1F5E7A; --accent-soft:#DCE8EC;
+  --road:#FFFFFF; --road-edge:#C9D1CE; --road-major:#F2D9A6; --road-major-edge:#D9B977; --rail:#7B858A; --tram:#9AA3A8; --water:#A9CBDD; --ring:#1F5E7A;
+  --c-amt:#5B4B8A; --c-bil:#2E7D4F; --c-gas:#C0602A; --c-ges:#C2334D; --c-gru:#6A962B; --c-han:#8C8172; --c-kul:#A4479B; --c-nah:#C98F0E; --c-opv:#1F6FB2; --c-rel:#7A6440; --c-soz:#0F8C8C;
+  --pin-treff:#0F8C8C; --pin-fehlt:#C2334D; --pin-utopie:#7A4FD0;
+  --konf:#B3261E; --gavo:#B3261E;
+  --f-display:"Avenir Next Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif; --f-body:Charter,"Bitstream Charter","Iowan Old Style",Georgia,serif; --f-data:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10171B; --paper:#172126; --fg:#E2E8EA; --muted:#93A2A9; --line:#2B383E; --accent:#7FC0DA; --accent-soft:#1E3440;
+  --road:#2A363C; --road-edge:#1A2328; --road-major:#5A4A2C; --road-major-edge:#3E3220; --rail:#7D898F; --tram:#5E6A70; --water:#1E4A60; --ring:#7FC0DA;
+  --c-amt:#A797DA; --c-bil:#5FC08A; --c-gas:#F0915C; --c-ges:#F06A82; --c-gru:#9CCB58; --c-han:#B3A898; --c-kul:#D883CE; --c-nah:#F2C24A; --c-opv:#5EA8EA; --c-rel:#C7A877; --c-soz:#4CC9C9;
+  --pin-treff:#4CC9C9; --pin-fehlt:#F06A82; --pin-utopie:#B394F2; --konf:#FF8A80; --gavo:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10171B; --paper:#172126; --fg:#E2E8EA; --muted:#93A2A9; --line:#2B383E; --accent:#7FC0DA; --accent-soft:#1E3440;
+  --road:#2A363C; --road-edge:#1A2328; --road-major:#5A4A2C; --road-major-edge:#3E3220; --rail:#7D898F; --tram:#5E6A70; --water:#1E4A60; --ring:#7FC0DA;
+  --c-amt:#A797DA; --c-bil:#5FC08A; --c-gas:#F0915C; --c-ges:#F06A82; --c-gru:#9CCB58; --c-han:#B3A898; --c-kul:#D883CE; --c-nah:#F2C24A; --c-opv:#5EA8EA; --c-rel:#C7A877; --c-soz:#4CC9C9;
+  --pin-treff:#4CC9C9; --pin-fehlt:#F06A82; --pin-utopie:#B394F2; --konf:#FF8A80; --gavo:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+html{color-scheme:light}
+:root[data-theme="dark"],html.dark{color-scheme:dark}
+body{margin:0;font-family:var(--f-body)}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px}
+h1{font-family:var(--f-display);font-stretch:118%;font-weight:780;font-size:clamp(1.6rem,3.2vw,2.4rem);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{font-family:var(--f-data);font-size:.78rem;color:var(--muted);letter-spacing:.02em;margin-top:6px}
+.badge{font-family:var(--f-display);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:16px;align-items:start}
+@media (max-width:960px){.grid{grid-template-columns:minmax(0,1fr)}aside{order:-1}}
+.mapbox{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;aspect-ratio:1/1;max-height:calc(100vh - 140px);width:100%;max-width:100%;touch-action:none}
+@media (max-width:960px){.mapbox{aspect-ratio:auto;height:60vh;min-height:320px;max-height:none}}
+svg#map{width:100%;height:100%;display:block;cursor:grab;user-select:none}
+svg#map.dragging{cursor:grabbing}
+svg#map.pinning{cursor:crosshair}
+.zoom{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px}
+.zoom button,.tool{font-family:var(--f-display);font-weight:600;background:var(--paper);color:var(--fg);border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.zoom button{width:34px;height:34px;font-size:1.1rem;line-height:1}
+.zoom button:hover,.tool:hover{border-color:var(--accent);color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.scale{position:absolute;left:10px;bottom:10px;font-family:var(--f-data);font-size:.7rem;color:var(--muted);background:var(--paper);padding:3px 7px;border-radius:3px;border:1px solid var(--line)}
+.card{position:absolute;left:10px;right:56px;top:10px;max-width:380px;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--cc,var(--accent));border-radius:4px;padding:10px 12px;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:.9rem}
+.card .k{font-family:var(--f-display);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card .n{font-family:var(--f-display);font-weight:700;font-size:1.05rem;line-height:1.2;margin:2px 0 4px;overflow-wrap:anywhere}
+.card .m{font-family:var(--f-data);font-size:.75rem;color:var(--muted)}
+.card a{color:var(--accent);overflow-wrap:anywhere}
+.card .x{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer}
+aside{background:var(--paper);border:1px solid var(--line);border-radius:6px;min-width:0;display:flex;flex-direction:column}
+.tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{flex:1 1 auto;font-family:var(--f-display);font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:12px 8px 9px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.pane{padding:16px 18px 20px;max-height:calc(100vh - 190px);overflow-y:auto}
+@media (max-width:960px){.pane{max-height:42vh}}
+.pane h2{font-family:var(--f-display);font-stretch:110%;font-size:1.02rem;font-weight:700;margin:18px 0 6px;text-wrap:balance}
+.pane h2:first-child{margin-top:0}
+.pane p{margin:0 0 10px;max-width:65ch}
+.layers{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.layers label{display:grid;grid-template-columns:18px 14px 1fr auto;align-items:center;gap:8px;padding:6px 4px;border-radius:4px;cursor:pointer;font-family:var(--f-display);font-size:.9rem}
+.layers label:hover{background:var(--accent-soft)}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--cc);border:2px solid var(--paper);box-shadow:0 0 0 1px var(--cc)}
+.cnt{font-family:var(--f-data);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.tool{font-size:.78rem;padding:6px 10px}
+.tool[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.note{font-size:.84rem;color:var(--muted)}
+.fact{font-family:var(--f-data);font-size:.82rem;font-variant-numeric:tabular-nums;color:var(--accent);white-space:nowrap}
+.tblwrap{overflow-x:auto;margin:6px 0 10px}
+table{border-collapse:collapse;width:100%;font-size:.82rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:var(--f-display);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td{font-family:var(--f-data)}
+td:first-child{font-family:var(--f-body)}
+.hl{background:var(--accent-soft)}
+.pinform{display:grid;gap:8px;margin:8px 0}
+.pinform select,.pinform input{font:inherit;font-size:.9rem;padding:7px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg);width:100%}
+.pins{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:4px}
+.pins li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:.88rem}
+.pins li button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:.8rem}
+.refs p{font-size:.84rem;padding-left:1.4em;text-indent:-1.4em}
+footer{font-family:var(--f-data);font-size:.72rem;color:var(--muted)}
+footer a{color:var(--muted)}
+.card{max-height:72%;overflow-y:auto}
+.tl{list-style:none;margin:8px 0 16px 6px;padding:0 0 0 16px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:14px}
+.tl li{position:relative}
+.tl li::before{content:"";position:absolute;left:-22px;top:5px;width:10px;height:10px;transform:rotate(45deg);background:var(--konf)}
+.tl time{font-family:var(--f-data);font-size:.75rem;color:var(--konf);display:block;letter-spacing:.02em}
+.tl p{margin:2px 0 0;font-size:.9rem}
+.tl a{color:var(--muted);font-size:.78rem}
+.timebox{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.timebox select{font:inherit;font-size:.85rem;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+.timebox input[type=range]{width:100%;accent-color:var(--accent)}
+.ticks{display:flex;justify-content:space-between;font-family:var(--f-data);font-size:.68rem;color:var(--muted)}
+.gavo-on{color:var(--konf);font-weight:600}
+.pinsel{font:inherit;font-size:.85rem;padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg);margin:2px 0 6px}
+table.akt td{white-space:normal;text-align:left;font-family:var(--f-body);vertical-align:top}
+table.akt td:first-child{font-weight:600;width:38%}
+table.akt th{text-align:left}
+.tool:disabled{opacity:.5;cursor:not-allowed}
+.lbl{font-family:var(--f-display);font-weight:600;fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Sozialraum Berliner Platz</h1>
+      <div class="sub">Ludwigshafen am Rhein · Radius 1.000 m · OpenStreetMap-Stand 26.10.2026 · Stadtteilpässe 2026</div>
+    </div>
+    <span class="badge">Räume der Utopie · Arbeitsfassung</span>
+  </header>
+
+  <div class="grid">
+    <div class="mapbox" id="mapbox">
+      <svg id="map" role="img" aria-label="Karte der Einrichtungen im Umkreis von einem Kilometer um den Berliner Platz"></svg>
+      <div class="zoom">
+        <button id="zin" type="button" aria-label="Hineinzoomen">+</button>
+        <button id="zout" type="button" aria-label="Herauszoomen">−</button>
+        <button id="zreset" type="button" aria-label="Ansicht zurücksetzen">⌂</button>
+      </div>
+      <div class="scale" id="scale">Luftlinie · Ringe 250 m</div>
+      <div class="card" id="card" hidden></div>
+    </div>
+
+    <aside>
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="ebenen" aria-selected="true">Ebenen</button>
+        <button role="tab" data-tab="befunde" aria-selected="false">Befunde</button>
+        <button role="tab" data-tab="konflikte" aria-selected="false">Konflikte</button>
+        <button role="tab" data-tab="bevoelkerung" aria-selected="false">Bevölkerung</button>
+        <button role="tab" data-tab="werkstatt" aria-selected="false">Werkstatt</button>
+        <button role="tab" data-tab="quellen" aria-selected="false">Quellen</button>
+      </div>
+
+      <div class="pane" data-pane="ebenen">
+        <p class="note" style="margin-bottom:12px">Die Reiter oben führen zu Befunden, Bevölkerungsdaten und Werkstatt. Ein Klick oder Tipp auf einen Punkt oder eine rote Raute öffnet die Angaben. Unter Tageszeit lässt sich die Karte auf eine bestimmte Stunde einstellen.</p>
+        <h2>Datenebenen</h2>
+        <ul class="layers" id="layers"></ul>
+        <div class="row">
+          <button class="tool" id="allOn" type="button">Alle zeigen</button>
+          <button class="tool" id="allOff" type="button">Alle ausblenden</button>
+          <button class="tool" id="ringsBtn" type="button" aria-pressed="true">Distanzringe</button>
+        </div>
+        <h2>Tageszeit</h2>
+        <div class="timebox">
+          <div class="row" style="margin:0;align-items:center">
+            <button class="tool" id="timeBtn" type="button" aria-pressed="false">Zeitansicht</button>
+            <label class="note" for="tDay" style="position:absolute;left:-9999px">Wochentag</label>
+            <select id="tDay"><option value="0">Montag</option><option value="1">Dienstag</option><option value="2">Mittwoch</option><option value="3">Donnerstag</option><option value="4" selected>Freitag</option><option value="5">Samstag</option><option value="6">Sonntag</option></select>
+            <span class="fact" id="tLbl">Fr 22 Uhr</span>
+          </div>
+          <label class="note" for="tHour" style="position:absolute;left:-9999px">Uhrzeit</label>
+          <input type="range" id="tHour" min="0" max="23" step="1" value="22">
+          <div class="ticks"><span>0</span><span>6</span><span>12</span><span>18</span><span>23 Uhr</span></div>
+          <p class="note" id="tSum"></p>
+        </div>
+        <p class="note">Ein Klick auf einen Punkt zeigt Name, Art, Luftlinie zum Berliner Platz und, wo bekannt, die Website. Mausrad oder die Schaltflächen zoomen, Ziehen verschiebt den Ausschnitt. Ausgewertet sind nur Objekte auf Ludwigshafener Stadtgebiet, das Mannheimer Ufer bleibt leer.</p>
+      </div>
+
+      <div class="pane" data-pane="befunde" hidden>
+        <p class="note">Die folgenden Lesarten sind Hypothesen aus den OpenStreetMap-Daten und beschreiben Infrastruktur. Was auf dem Platz geschieht, zeigt der Reiter Konflikte. Beides ersetzt weder Ortskenntnis noch Gespräche mit Menschen, die hier wohnen und arbeiten.</p>
+        <h2>Verkehrsknoten</h2>
+        <p>Der Berliner Platz ist Umsteigepunkt für Straßenbahn und Bus, der Bahnhof Ludwigshafen Mitte liegt <span class="fact">130 m</span> entfernt. Im Radius liegen <span class="fact" data-count="opv"></span> Haltestellen. Für eine Werkstatt mit Teilnehmenden aus mehreren Stadtteilen ist die Lage damit gut erreichbar.</p>
+        <h2>Öffentliche Bildung und Kultur in Gehweite</h2>
+        <p>Städtische Musikschule (<span class="fact">140 m</span>), Stadtbibliothek (<span class="fact">230 m</span>), Ernst-Bloch-Zentrum (<span class="fact">280 m</span>), Volkshochschule (<span class="fact">370 m</span>), Pfalzbau (<span class="fact">390 m</span>) und Wilhelm-Hack-Museum (<span class="fact">530 m</span>) liegen dicht beieinander. Mit dem Ernst-Bloch-Zentrum befindet sich der Ort, der dem Ludwigshafener Philosophen der konkreten Utopie gewidmet ist, wenige Gehminuten vom Platz entfernt.</p>
+        <h2>Gesundheit</h2>
+        <p>Rund <span class="fact" data-count="ges"></span> Einträge betreffen Gesundheit, darunter zehn Apotheken. Ein großer Teil konzentriert sich im Ärztehaus Lusanum an der Walzmühle in etwa <span class="fact">300 m</span> Entfernung, wo rund 20 Praxen und Therapieangebote gebündelt sind.</p>
+        <h2>Ämter und Beratung</h2>
+        <p>Stadtverwaltung (<span class="fact">40 m</span>), Bürgerbüro Bismarckstraße (<span class="fact">170 m</span>), Verbraucherzentrale (<span class="fact">170 m</span>), Jobcenter (<span class="fact">470 m</span>) und Agentur für Arbeit (<span class="fact">640 m</span>) liegen im Umfeld. Für aufsuchende Formate politischer Bildung kommen Beratungsstellen als Kooperationsorte in Betracht.</p>
+        <h2>Konsumfreie Treffpunkte</h2>
+        <p>Den rund <span class="fact" data-count="gas"></span> gastronomischen Orten, überwiegend Imbisse, Kneipen und Shisha-Lounges, stehen in OpenStreetMap nur wenige offene, nichtkommerzielle Treffpunkte gegenüber. Nukleus (<span class="fact">610 m</span>), Kulturzentrum dasHaus (<span class="fact">670 m</span>), Jugendtreff Westend (<span class="fact">790 m</span>) und Ludwig-Wolker-Freizeitstätte (<span class="fact">820 m</span>) liegen am Rand des Radius. Ob in direkter Platznähe tatsächlich ein Mangel besteht oder solche Orte schlicht nicht erfasst sind, lässt sich nur vor Ort klären. Am Spielplatz Lichtenberger Ufer hat die Stadt im Oktober 2026 Sitzbänke abgebaut, um Treffpunkte für Drogenkonsum zu verhindern. In der Zeitansicht sind freitags um 22 Uhr von 271 Einrichtungen mit hinterlegten Öffnungszeiten 27 geöffnet, fast alle aus Gastronomie und Nahversorgung und keine aus Bildung, Sozialem, Religion oder Verwaltung. Wer sich zu dieser Stunde im Umfeld aufhalten will, findet laut Daten kaum einen geöffneten Ort ohne Konsum. Zur selben Zeit gilt das Alkoholverbot.</p>
+        <h2>Religiöse Vielfalt</h2>
+        <p>Im Radius liegen <span class="fact" data-count="rel"></span> religiöse Orte, davon sieben Moscheen und islamische Kulturvereine sowie neun christliche Gemeinden katholischer, protestantischer, methodistischer, mennonitischer und freikirchlicher Prägung. Sie sind mögliche Partner, um Menschen jenseits klassischer Bildungseinrichtungen zu erreichen.</p>
+        <h2>Nahversorgung und Grün</h2>
+        <p>Discounter liegen in <span class="fact">170 m</span> bis <span class="fact">520 m</span> Entfernung, dazu kommen zahlreiche kleine Lebensmittelgeschäfte mit internationalem Sortiment, Bäckereien und Kioske. Grünflächen sind kleinteilig, der Platanenhain liegt <span class="fact">120 m</span> entfernt, das Rheinufer rund <span class="fact">450 m</span> östlich. Platanenhain, Lichtenberger Ufer und Rheinschanzenpromenade gehören zum Geltungsbereich des nächtlichen Alkoholverbots, mehr dazu im Reiter Konflikte.</p>
+      </div>
+
+      <div class="pane" data-pane="konflikte" hidden>
+        <h2>Regulierung, Bauprojekte, Debatte</h2>
+        <p>Diese Ebene ergänzt die Infrastruktur um das, was OpenStreetMap nicht erfasst. Sie beruht auf 34 ausgewerteten Dokumenten, darunter Mitteilungen von Stadt und Polizei, Lokal- und Regionalpresse, Erklärungen von Parteien und Initiativen sowie Fachliteratur, ergänzt um eine Zählung von 408 Polizeimeldungen im Presseportal, die den Berliner Platz erwähnen. Erfasst ist der Zeitraum von 2008 bis Oktober 2026. Bei Artikeln hinter einer Bezahlschranke sind nur Titel, Datum und Vorspann ausgewertet.</p>
+
+        <h2>Was die Polizei selbst sagt</h2>
+        <p>Im Januar 2025 hat das Polizeipräsidium Rheinpfalz auf die Berichterstattung reagiert. Nach seinen Angaben sank die Zahl der registrierten Straftaten am Berliner Platz von rund 400 im Jahr 2011 auf rund 200 im Jahr 2024, die Körperverletzungen gingen von einem Höchststand von rund 190 Fällen 2011 auf seit 2019 konstant etwa 100 Fälle im Jahr zurück. Ludwigshafen sei seit Jahren das zweitsicherste Oberzentrum in Rheinland-Pfalz, und eine Häufung von Meldungen zeige keine Tendenz der Kriminalitätsentwicklung an. Der Platz stehe regelmäßig im Fokus der regionalen Medien (Polizeipräsidium Rheinpfalz, 2025). Bei einer Debatte im Stadtrat 2025 bezifferte der Ordnungsdezernent den Anteil alkoholbedingter Straftaten am Platz auf 4,2 Prozent (Ludwigshafen24, 2025a). Für eine algorithmenbasierte Videoüberwachung stufte die Polizei die Zahl der Straftaten nach Presseberichten als zu gering für einen Kriminalitätsschwerpunkt ein (Ludwigshafen24, 2025b).</p>
+
+        <h2>Polizeimeldungen mit Berliner Platz im Titel</h2>
+        <div class="tblwrap"><svg id="ppChart" viewBox="0 0 360 150" role="img" aria-label="Pressemeldungen der Polizei pro Jahr mit Berliner Platz im Titel, 2018 bis 2026"></svg></div>
+        <p class="note">Gezählt sind Pressemeldungen der Polizei Ludwigshafen im Presseportal, deren Titel den Berliner Platz nennt, Stand 27.10.2026. Die Zahl beschreibt, wie oft die Polizei über den Platz kommuniziert, und sagt nichts über die Zahl der Straftaten. Zwischen 2024 und 2025 stieg sie von 4 auf 18, während die Polizei für dieselbe Zeit sinkende oder gleichbleibende Fallzahlen angibt.</p>
+
+        <h2>Akteure und Deutungen</h2>
+        <div class="tblwrap">
+          <table class="akt">
+            <thead><tr><th>Akteur</th><th>Deutung und Forderung</th></tr></thead>
+            <tbody>
+              <tr><td>Stadtverwaltung, Ordnungsdezernat</td><td>Gefahrenabwehr durch befristete Verbote, Kontrollschwerpunkte, Licht und Rückbau von Sitzgelegenheiten, Anmietung im Palatineo</td></tr>
+              <tr><td>Polizeipräsidium Rheinpfalz</td><td>Platz als Schwerpunkt der Sicherheitsarbeit wegen hoher Frequenz, Hinweis auf sinkende Fallzahlen und mediale Überzeichnung, Prävention vor Ort</td></tr>
+              <tr><td>CDU, FWG, SPD, FDP</td><td>Platz als Brennpunkt, Alkoholverbot, Ausweitung, mehr Präsenz, CDU und FWG zusätzlich algorithmenbasierte Videoüberwachung</td></tr>
+              <tr><td>Grüne, Linke, Grünes Forum, Piraten</td><td>Kritik am Verbot 2021, 2025 Vorrang für Polizeipräsenz und Abwarten der Mannheimer Auswertung</td></tr>
+              <tr><td>AfD, BSW</td><td>Ablehnung der Verordnung 2025, Begründung in den Quellen nicht dokumentiert</td></tr>
+              <tr><td>Wir vom Berliner Platz</td><td>Aufenthaltsqualität, Sauberkeit, Sicherheit, Dialog mit Stadt und Investor, gegen eine allein negative Darstellung</td></tr>
+              <tr><td>Bürgerinitiative Lebenswertes Ludwigshafen</td><td>Neuer Bebauungsplan statt Hochhaus, breite Beteiligung, Klimaziele</td></tr>
+              <tr><td>Kaum vertreten</td><td>Menschen, die sich auf dem Platz aufhalten, Drogenhilfe und Streetwork, Gewerbetreibende, Anwohnende</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Zeitleiste</h2>
+        <ol class="tl">
+          <li><time>2008</time><p>Erste Gefahrenabwehrverordnung mit nächtlichem Alkoholverbot am Berliner Platz, danach mehrere Jahre als jährlich wiederkehrende Regelung für die Sommermonate.</p><a href="https://www.mrn-news.de/2011/04/26/ludwigshafen-alkoholverbot-auf-dem-berliner-platz-41397-41397/" target="_blank" rel="noopener">MRN-News, 26.04.2011</a></li>
+          <li><time>10.06.2016</time><p>Die Rheinpfalz berichtet über sinkende Straftaten am Platz.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-weniger-straftaten-am-berliner-platz-_arid,619636.html" target="_blank" rel="noopener">Die Rheinpfalz</a></li>
+          <li><time>März 2018</time><p>Der Platz gilt polizeilich als gefährlicher Ort, was Kontrollen ohne konkreten Verdacht erlaubt. Bei Schwerpunktkontrollen vom 1. bis 4. März werden 281 Personen kontrolliert, 17 Platzverweise ausgesprochen und bei acht Personen Drogen gefunden.</p><a href="https://www.rheinpfalz.de/artikel/gefaehrlicher-ort-in-ludwigshafen-eine-ganz-normale-nacht-am-berliner-platz/" target="_blank" rel="noopener">Die Rheinpfalz, 11.03.2018</a> · <a href="https://www.ludwigshafen24.de/ludwigshafen/ludwigshafen-mitte-kontrollen-berliner-platz-drogen-messer-gefunden-platzverweise-9666472.html" target="_blank" rel="noopener">Ludwigshafen24, 05.03.2018</a></li>
+          <li><time>29.05.2018</time><p>Die Polizei mahnt in der Sicherheitsdebatte um den Platz zur Gelassenheit.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-berliner-platz-in-ludwigshafen-polizei-mahnt-zur-gelassenheit-_arid,1180990.html" target="_blank" rel="noopener">Die Rheinpfalz</a></li>
+          <li><time>03.12.2018</time><p>In Mannheim startet die algorithmenbasierte Videoüberwachung, die später zum Vorbild für Ludwigshafener Anträge wird.</p><a href="https://im.baden-wuerttemberg.de/de/service/presse-und-oeffentlichkeitsarbeit/pressemitteilung/pid/startschuss-fuer-die-algorithmenbasierte-videoueberwachung-beim-polizeipraesidium-mannheim" target="_blank" rel="noopener">Innenministerium Baden-Württemberg</a></li>
+          <li><time>01.03.2021</time><p>Der Stadtrat beschließt mit breiter Mehrheit eine neue Verordnung mit Konsum- und Verkaufsverbot. Kritik kommt von Linker, Grünem Forum und Piraten. Genannt werden 466 Straftaten 2017, 353 im Jahr 2018 und 235 im Jahr 2019.</p><a href="https://www.ludwigshafen24.de/ludwigshafen/ludwigshafen-alkohol-verbot-sperrzone-ausgeweitet-berliner-platz-polizei-schlaegereien-90224833.html" target="_blank" rel="noopener">Ludwigshafen24, 05.03.2021</a> · <a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-berliner-platz-hitzige-debatte-zum-alkoholverbot-_arid,5176029.html" target="_blank" rel="noopener">Die Rheinpfalz, 04.03.2021</a></li>
+          <li><time>11.11.2021</time><p>Streetworker äußern sich in der Rheinpfalz zur Drogenszene, einer der wenigen Beiträge aus Sicht der Hilfesysteme.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-was-die-streetworker-zur-drogenszene-in-ludwigshafen-sagen-_arid,5277208.html" target="_blank" rel="noopener">Die Rheinpfalz</a></li>
+          <li><time>Juli 2023</time><p>Stillstand an der Metropol-Baugrube und Verwahrlosung des Umfelds. Die Bürgerinitiative Lebenswertes Ludwigshafen startet eine Petition für einen neuen Bebauungsplan mit breiter Beteiligung.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-metropol-baugrube-stillstand-am-berliner-platz-_arid,5526819.html" target="_blank" rel="noopener">Die Rheinpfalz, 06.07.2023</a> · <a href="https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/buergerinitiative-petition-gegen-metropolhochhaus-auf-berliner-platz_a483376" target="_blank" rel="noopener">Wochenblatt, 26.07.2023</a></li>
+          <li><time>März 2024</time><p>Nach Zweifeln der Verwaltung an den Voraussetzungen und einer Ablehnung im Ortsbeirat fordern SPD und Forum das Verbot erneut, die FWG zusätzlich ein dauerhaftes Alkohol- und Rauchverbot an der Haltestelle.</p><a href="https://www.spd-ludwigshafen.de/meldungen/alkoholverbot-am-berliner-platz-notwendiger-denn-je/" target="_blank" rel="noopener">SPD, 15.03.2024</a> · <a href="https://www.mrn-news.de/2024/03/26/ludwigshafen-fwg-alkohol-und-rauchverbot-am-berliner-platz-527769/" target="_blank" rel="noopener">MRN-News, 26.03.2024</a></li>
+          <li><time>Juli 2024</time><p>FWG, CDU, SPD und FDP stimmen im Stadtrat für ein Alkoholverbot und begründen es mit Sicherheitsgefühl und Aufenthaltsqualität.</p><a href="https://fwg-lu.de/blog/2024/07/10/fwg-cdu-spd-und-fdp-stimmen-fuer-alkoholverbot-am-berliner-platz/" target="_blank" rel="noopener">FWG Ludwigshafen, 10.07.2024</a></li>
+          <li><time>27.01.2025</time><p>Die Polizei veröffentlicht Fakten zur Sicherheitslage und widerspricht dem Bild steigender Kriminalität am Platz.</p><a href="https://www.presseportal.de/blaulicht/pm/117696/5958308" target="_blank" rel="noopener">Polizeipräsidium Rheinpfalz</a></li>
+          <li><time>Februar 2025</time><p>Aus dem Metropol wird das Palatineo der Freiburger Unmüßig-Gruppe. Der Ortsbeirat Südliche Innenstadt stimmt einstimmig für die Wiedereinführung des Verbots.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-berliner-platz-aus-metropol-wird-palatineo-_arid,5746919.html" target="_blank" rel="noopener">Die Rheinpfalz, 23.02.2025</a> · <a href="https://www.ludwigshafen24.de/ludwigshafen/alkoholverbot-berliner-platz-ludwigshafen-verbotszone-ortsbereit-erneutes-alkoholverbot-1-april-93179496.html" target="_blank" rel="noopener">Ludwigshafen24</a></li>
+          <li><time>Juni 2025</time><p>CDU und FWG beantragen eine algorithmenbasierte Videoüberwachung nach Mannheimer Vorbild. Grüne und weitere Fraktionen setzen auf Präsenz und wollen die Mannheimer Auswertung abwarten.</p><a href="https://www.ludwigshafen24.de/ludwigshafen/cdu-fwg-fordern-hightech-videoschutz-antrag-kriminalitaet-brennpunkte-mannheim-vorbild-herbst-pruefung-stadtrat-93765951.html" target="_blank" rel="noopener">Ludwigshafen24</a></li>
+          <li><time>Sommer 2025</time><p>Der Stadtrat beschließt eine Verordnung für August bis Oktober, AfD und BSW stimmen dagegen. Die Polizei informiert an mehreren Tagen mit Präventionsständen auf dem Platz. Die zeitliche Zuordnung der Stadtratssitzung ist in der Quelle nicht eindeutig.</p><a href="https://www.ludwigshafen24.de/ludwigshafen/alkoholverbot-berliner-platz-ludwigshafen-verbotszone-ortsbereit-erneutes-alkoholverbot-1-april-93179496.html" target="_blank" rel="noopener">Ludwigshafen24</a> · <a href="https://www.presseportal.de/blaulicht/pm/117696/6102430" target="_blank" rel="noopener">Polizei, 22.08.2025</a></li>
+          <li><time>18.10.2025</time><p>Für das Mannheimer Vorbild liegen nach einer Recherche keine Kennzahlen zur Wirksamkeit vor, eine unabhängige Evaluation ist nicht geplant.</p><a href="https://netzpolitik.org/?p=499547" target="_blank" rel="noopener">netzpolitik.org</a></li>
+          <li><time>11.12.2025</time><p>Die Initiative Wir vom Berliner Platz plant für 2026 Gesprächsrunden mit dem Bauunternehmer, Dialog mit dem Oberbürgermeister und Pflege des Platanenhains.</p><a href="https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/mehr-sicherheit-und-attraktivitaet-wir-vom-berliner-platz-hat-neue-plaene-fuer-2026_a690132" target="_blank" rel="noopener">Wochenblatt</a></li>
+          <li><time>25.03.2026</time><p>Die CDU fordert mehr Präsenz, Videoüberwachung, Licht und Sauberkeit sowie Prävention und Sozialarbeit für die Innenstadt.</p><a href="https://www.mrn-news.de/2026/03/25/ludwigshafen-cdu-ludwigshafen-sicherheit-in-der-innenstadt-gemeinsam-staerken-verantwortung-weiter-ausbauen-631230/" target="_blank" rel="noopener">MRN-News</a></li>
+          <li><time>28.04.2026</time><p>Nach mehr gefährlichen Körperverletzungen beauftragt der Stadtrat die Prüfung eines erneuten Verbots.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-mehr-gef%C3%A4hrliche-k%C3%B6rperverletzungen-am-berliner-platz-stadt-pr%C3%BCft-erneutes-alkoholverbot-_arid,5884730.html" target="_blank" rel="noopener">Die Rheinpfalz</a></li>
+          <li><time>Mai 2026</time><p>Die Initiative fordert Austausch über Baugrube und Stadtumbau und lädt zu einem Aktionstag zur Sicherheit ein. Ein Kommentar der Rheinpfalz beschreibt den Platz zwischen Hoffen und Bangen.</p><a href="https://www.swr.de/swraktuell/rheinland-pfalz/ludwigshafen/initiative-berliner-platz-ludwigshafen-fordert-antworten-zu-grossen-bauprojekten-100.html" target="_blank" rel="noopener">SWR, 18.05.2026</a> · <a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-eher-rau-mal-blumig-oft-laut-selten-langweilig-der-berliner-platz-zwischen-hoffen-und-bangen-_arid,5885713.html" target="_blank" rel="noopener">Die Rheinpfalz, 04.05.2026</a></li>
+          <li><time>22.06.2026</time><p>Der Stadtrat beschließt die Verordnung für sechs Wochen und am selben Tag die Anmietung von Büroflächen im Palatineo für Bürgerservices und Standesamt.</p><a href="https://ludwigshafen.de/aktuelles/aktuelle-meldungen/gefahrenabwehrverordnung-fuer-den-bereich-berliner-platz-erlassen-die-zeitliche-gueltigkeit-umfasst-sechs-wochen-kvd-kontrolliert-schwerpunktmaessig-in-der-innenstadt" target="_blank" rel="noopener">Stadt Ludwigshafen</a> · <a href="https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/stadt-zieht-ins-palatineo-nach-verhandlungen-beginnen-endlich-die-arbeiten_a805904" target="_blank" rel="noopener">Wochenblatt</a></li>
+          <li><time>27.06.2026</time><p>Polizei und Ordnungsbehörde kontrollieren gemeinsam auf dem Platz.</p><a href="https://www.presseportal.de/blaulicht/pm/117688/6303371" target="_blank" rel="noopener">Polizeidirektion Ludwigshafen</a></li>
+          <li><time>10.08.2026</time><p>Die Stadt verlängert das Verbot bis 31. Oktober 2026.</p><a href="https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/alkoholverbot-nachts-am-berliner-platz-gilt-weiterhin-mehr-kontrollen_a848700" target="_blank" rel="noopener">Wochenblatt</a></li>
+          <li><time>12.10.2026</time><p>Mehr Licht auf dem Platz, Hecken und Bänke am Spielplatz Lichtenberger Ufer entfernt, KI-gestützte Kameraüberwachung als Pilotprojekt angekündigt.</p><a href="https://www.mrn-news.de/2026/10/12/ludwigshafen-mehr-sicherheit-im-oeffentlichen-raum-spielplatz-am-lichtenberger-ufer-und-berliner-platz-werden-besser-ausgeleuchtet-657627/" target="_blank" rel="noopener">MRN-News nach Mitteilung der Stadt</a></li>
+          <li><time>22.10.2026</time><p>Die Rheinpfalz begleitet eine Kontrollaktion verdeckt arbeitender Zivilstreifen.</p><a href="https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-so-arbeiten-zivilpolizisten-auf-dem-berliner-platz-_arid,5940959.html" target="_blank" rel="noopener">Die Rheinpfalz</a></li>
+          <li><time>31.10.2026</time><p>Die verlängerte Verordnung läuft aus. Ob sie erneut verlängert wird, war bei Erstellung der Karte nicht bekannt.</p></li>
+        </ol>
+
+        <h2>Lesart</h2>
+        <p>Über fast zwei Jahrzehnte kehrt dasselbe Muster wieder. Vorfälle und Berichte führen zu Forderungen nach Verbot und Kontrolle, die Verwaltung reagiert mit befristeten Verordnungen, und die Debatte beginnt im nächsten Jahr erneut. Die polizeilichen Fallzahlen sind in derselben Zeit deutlich gesunken. Ullrich und Tullney (2012) beschreiben, wie die Einstufung als gefährlicher Ort Kontrollen erzeugt, deren Ergebnisse wiederum die Einstufung bestätigen. Wacquant (2007) zeigt, wie die wiederholte Zuschreibung als Problemort einen Ort und seine Nutzer:innen gemeinsam abwertet. Mit der wissenschaftlichen Diskursanalyse nach Keller (2011) ließe sich der Korpus weiter nach Sprecherpositionen und Deutungsmustern auswerten.</p>
+        <p>Für Räume des Zweifels bietet die Spannung zwischen gefühlter und registrierter Sicherheit einen Ausgangspunkt. Für die Zukunftswerkstatt liefert die Kritikphase reichlich Stoff, zumal der Ernst-Bloch-Platz im Geltungsbereich des Verbots liegt und auf demselben Platz eine KI-gestützte Überwachung erprobt werden soll.</p>
+      </div>
+
+      <div class="pane" data-pane="bevoelkerung" hidden>
+        <h2>Stadtteile im Radius</h2>
+        <p>Der Berliner Platz liegt im Stadtteil Mitte. Der Kreis von einem Kilometer erfasst Mitte zu großen Teilen und reicht nach Süd, Nord/Hemshof und West hinein. Kleinräumigere Zahlen als auf Stadtteilebene veröffentlicht die Statistikstelle nicht, die Werte beschreiben deshalb die Stadtteile insgesamt und nicht den Kreis.</p>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>Stand 31.12.2025</th><th>Mitte</th><th>Süd</th><th>Nord/<br>Hemshof</th><th>Stadt</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td>Einwohner</td><td>13.351</td><td>22.123</td><td>18.630</td><td>182.183</td></tr>
+              <tr><td>Ausländeranteil</td><td>54,4 %</td><td>37,8 %</td><td>55,8 %</td><td>32,8 %</td></tr>
+              <tr><td>unter 18 Jahre</td><td>20,6 %</td><td>17,5 %</td><td>21,3 %</td><td>18,5 %</td></tr>
+              <tr><td>75 Jahre und älter</td><td>5,1 %</td><td>8,4 %</td><td>5,2 %</td><td>9,3 %</td></tr>
+              <tr><td>Durchschnittsalter</td><td>36,8</td><td>40,3</td><td>37,0</td><td>42,0</td></tr>
+              <tr><td>Einpersonenhaushalte</td><td>57,4 %</td><td>56,2 %</td><td>53,1 %</td><td>48,8 %</td></tr>
+              <tr><td>Alleinerziehende an Haushalten mit Kindern</td><td>26,2 %</td><td>25,5 %</td><td>26,4 %</td><td>24,0 %</td></tr>
+              <tr class="hl"><td>Arbeitslosenquote</td><td>18,3 %</td><td>11,9 %</td><td>18,7 %</td><td>11,7 %</td></tr>
+              <tr><td>Bürgergeld, unter 66 Jahre</td><td>23,2 %</td><td>12,8 %</td><td>24,2 %</td><td>13,7 %</td></tr>
+              <tr class="hl"><td>Bürgergeld, unter 18 Jahre</td><td>36,1 %</td><td>20,4 %</td><td>37,2 %</td><td>21,5 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Anteile selbst berechnet aus den absoluten Zahlen der Stadtteilpässe, Quoten zu Arbeitslosigkeit und Bürgergeld wie dort ausgewiesen.</p>
+        <h2>Lesart</h2>
+        <p>Mitte und Nord/Hemshof sind jünger und internationaler als die Gesamtstadt. Mehr als jedes dritte Kind unter 18 Jahren lebt in beiden Stadtteilen in einem Haushalt mit Bürgergeldbezug, in der Gesamtstadt gut jedes fünfte. Süd liegt bei Arbeitslosigkeit und Bürgergeld nahe am städtischen Durchschnitt und hat einen höheren Anteil Hochbetagter. Der Radius verbindet damit Quartiere sehr unterschiedlicher Lebenslagen.</p>
+      </div>
+
+      <div class="pane" data-pane="werkstatt" hidden>
+        <h2>Karte in der Zukunftswerkstatt</h2>
+        <p>In der Kritikphase dient die Karte als gemeinsame Bestandsaufnahme. Die Gruppe prüft, was vorhanden ist, was fehlt und was die Daten übersehen. In der Phantasiephase zeichnen die Teilnehmenden Orte ein, wie sie sein könnten. In der Verwirklichungsphase zeigt die Karte Einrichtungen, die als Ansprechpartner in Frage kommen.</p>
+        <h2>Eigene Orte eintragen</h2>
+        <p class="note" id="pinStatus"></p>
+        <div class="pinform">
+          <label class="note" for="pinType">Art des Ortes</label>
+          <select id="pinType">
+            <option value="treff">Hier treffen wir uns</option>
+            <option value="wohl">Hier fühle ich mich wohl</option>
+            <option value="unsicher">Hier fühle ich mich unsicher</option>
+            <option value="fehlt">Hier fehlt etwas</option>
+            <option value="utopie">Hier entsteht ein Utopie-Ort</option>
+          </select>
+          <label class="note" for="pinName">Bezeichnung, freiwillig</label>
+          <input id="pinName" type="text" maxlength="80" placeholder="z. B. Bank am Platanenhain">
+          <label class="note" for="pinGrp">Gruppe oder Werkstatt, freiwillig</label>
+          <input id="pinGrp" type="text" maxlength="40" placeholder="z. B. Werkstatt November">
+          <button class="tool" id="pinMode" type="button" aria-pressed="false">Ort auf der Karte setzen</button>
+        </div>
+        <label class="note" for="pinGroup">Anzeigen</label>
+        <div class="row" style="margin:2px 0 6px;align-items:center">
+          <select id="pinGroup" class="pinsel" style="margin:0"><option value="">Alle Gruppen</option></select>
+          <button class="tool" id="pinRefresh" type="button">Einträge aktualisieren</button>
+        </div>
+        <p class="note" id="pinCounts"></p>
+        <ul class="pins" id="pins"></ul>
+        <p class="note" id="pinOthers"></p>
+        <p class="note">Die Kategorien unsicher und wohl erlauben es, das eigene Sicherheitsgefühl neben die Zahlen und die öffentliche Debatte im Reiter Konflikte zu legen. Gefüllte Punkte stammen von anderen, Ringe sind die eigenen Einträge.</p>
+      </div>
+
+      <div class="pane refs" data-pane="quellen" hidden>
+        <h2>Vorgehen</h2>
+        <p style="text-indent:0;padding-left:0">Mittelpunkt ist der Berliner Platz laut OpenStreetMap-Geocoder (49,47987 N, 8,45135 O). Einrichtungen, Haltestellen, Straßen und Gleise stammen aus einer Overpass-Abfrage vom 26.10.2026, beschränkt auf das Stadtgebiet Ludwigshafen. Haltestellenmasten gleichen Namens sind zusammengefasst, private Personaldienstleister mit dem Merkmal Arbeitsvermittlung wurden entfernt. Die Bevölkerungsdaten stammen aus den Stadtteilpässen 2026. Öffnungszeiten wurden aus dem OpenStreetMap-Merkmal opening_hours für die Woche vom 9. bis 15. November 2026 stündlich ausgewertet, Feiertage und Ausnahmen bleiben unberücksichtigt. Die Konfliktebene beruht auf 34 Dokumenten von 2008 bis Oktober 2026 und einer Zählung der Polizeimeldungen im Presseportal.</p>
+        <h2>Grenzen</h2>
+        <p style="text-indent:0;padding-left:0">Die Karte ist so vollständig wie OpenStreetMap. Praxen, Schulen und Haltestellen sind dort meist gut erfasst, Vereine, Initiativen und informelle Treffpunkte kaum. Alle Entfernungen sind Luftlinie und unterschätzen die tatsächlichen Wege. Die Befunde sind Hypothesen und keine Ergebnisse einer Sozialraumanalyse im fachlichen Sinn, zu der auch beteiligungsorientierte Verfahren wie Stadtteilbegehungen und Nadelmethode gehören (Deinet, 2009; Spatscheck &amp; Wolf-Ostermann, 2016).</p>
+        <h2>Literatur und Daten</h2>
+        <p>Bloch, E. (1959). <i>Das Prinzip Hoffnung</i>. Suhrkamp.</p>
+        <p>Deinet, U. (Hrsg.). (2009). <i>Methodenbuch Sozialraum</i>. VS Verlag für Sozialwissenschaften.</p>
+        <p>Jungk, R., &amp; Müllert, N. R. (1989). <i>Zukunftswerkstätten. Mit Phantasie gegen Routine und Resignation</i>. Heyne.</p>
+        <p>OpenStreetMap-Mitwirkende. (2026). <i>OpenStreetMap</i> [Datensatz, Abfrage 26.10.2026]. ODbL 1.0. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a></p>
+        <p>Wacquant, L. (2007). Territorial stigmatization in the age of advanced marginality. <i>Thesis Eleven, 91</i>(1), 66–77. <a href="https://doi.org/10.1177/0725513607082003" target="_blank" rel="noopener">doi.org/10.1177/0725513607082003</a></p>
+        <p>Keller, R. (2011). <i>Wissenssoziologische Diskursanalyse. Grundlegung eines Forschungsprogramms</i> (3. Aufl.). VS Verlag für Sozialwissenschaften.</p>
+        <p>Ludwigshafen24. (2025a). <i>Brennpunkt Berliner Platz</i> [Bericht zu Ortsbeirat und Stadtrat]. <a href="https://www.ludwigshafen24.de/ludwigshafen/alkoholverbot-berliner-platz-ludwigshafen-verbotszone-ortsbereit-erneutes-alkoholverbot-1-april-93179496.html" target="_blank" rel="noopener">ludwigshafen24.de</a></p>
+        <p>Ludwigshafen24. (2025b). <i>Kriminalität stoppen mit Kameras? Ludwigshafen ringt um Lösung</i>. <a href="https://www.ludwigshafen24.de/ludwigshafen/cdu-fwg-fordern-hightech-videoschutz-antrag-kriminalitaet-brennpunkte-mannheim-vorbild-herbst-pruefung-stadtrat-93765951.html" target="_blank" rel="noopener">ludwigshafen24.de</a></p>
+        <p>Polizeipräsidium Rheinpfalz. (2025, 27. Januar). <i>Fakten zur Sicherheitslage in Ludwigshafen</i> [Pressemitteilung]. <a href="https://www.presseportal.de/blaulicht/pm/117696/5958308" target="_blank" rel="noopener">presseportal.de</a></p>
+        <p>Ullrich, P., &amp; Tullney, M. (2012). Die Konstruktion ‚gefährlicher Orte‘. Eine Problematisierung mit Beispielen aus Berlin und Leipzig. <i>sozialraum.de</i>. <a href="https://www.sozialraum.de/die-konstruktion-gefaehrlicher-orte.php" target="_blank" rel="noopener">sozialraum.de</a></p>
+        <p>Die übrigen Presse- und Behördenquellen sind im Reiter Konflikte bei den jeweiligen Einträgen verlinkt.</p>
+        <p>Röthler, D. (2026, 18. Oktober). <i>Sozialraumanalyse mit KI. Ein Testlauf für das Regionsmanagement Osttirol</i>. <a href="https://david.roethler.at/sozialraumanalyse-mit-ki-ein-testlauf-fuer-das-regionsmanagement-osttirol/" target="_blank" rel="noopener">david.roethler.at</a></p>
+        <p>Spatscheck, C., &amp; Wolf-Ostermann, K. (2016). <i>Sozialraumanalysen. Ein Arbeitsbuch für soziale, gesundheits- und bildungsbezogene Dienste</i>. Barbara Budrich.</p>
+        <p>Stadt Ludwigshafen am Rhein, Stadtentwicklung, Statistikstelle. (2026). <i>Stadtteilpässe Mitte, Süd, Nord/Hemshof</i>. <a href="https://ludwigshafen.de/verwaltung-politik/stadtverwaltung-rathaus/verwaltung/1-16-stadtentwicklung" target="_blank" rel="noopener">ludwigshafen.de</a></p>
+      </div>
+    </aside>
+  </div>
+  <footer id="foot">Kartendaten © OpenStreetMap-Mitwirkende, ODbL · Bevölkerungsdaten © Stadt Ludwigshafen am Rhein, Bereich Stadtentwicklung</footer>
+</div>
+
+<script>
+/* ===== Einstellungen ===================================================
+   APPS_SCRIPT_URL: Web-App-URL aus der Apps-Script-Bereitstellung (Code.gs).
+   Leer lassen, dann bleiben Einträge im jeweiligen Browser.
+   IMPRESSUM_URL / DATENSCHUTZ_URL: Links für die Fußzeile.
+   ===================================================================== */
+const CONFIG={
+  APPS_SCRIPT_URL:'',
+  BESUCHE_ZAEHLEN:true,
+  IMPRESSUM_URL:'',
+  DATENSCHUTZ_URL:''
+};
+const LAT=49.47987, LON=8.45135, KX=Math.cos(LAT*Math.PI/180)*111320, KY=110574, GQ=6;
+const CATS={
+  nah:{n:'Nahversorgung'}, ges:{n:'Gesundheit'}, bil:{n:'Bildung & Betreuung'}, opv:{n:'Öffentlicher Verkehr'},
+  gru:{n:'Grün & Sport'}, soz:{n:'Soziales & Begegnung'}, rel:{n:'Religiöse Orte'}, amt:{n:'Ämter & Verwaltung'},
+  kul:{n:'Kultur'}, gas:{n:'Gastronomie'}, han:{n:'Handel & Dienstleistung'}
+};
+const SHOP={'travel agency':'Reisebüro',hairdresser:'Friseur',jewelry:'Schmuck',beauty:'Kosmetik',hifi:'Unterhaltungselektronik',hardware:'Haushaltswaren',clothes:'Bekleidung',shoes:'Schuhe','health food':'Reformhaus','department store':'Kaufhaus','hearing aids':'Hörakustik',electronics:'Elektronik','variety store':'Sonderposten','ice cream':'Eis','mobile phone':'Mobilfunk',massage:'Massage',chemist:'Drogerie',decoration:'Raumausstattung',optician:'Optik','fashion accessories':'Accessoires',nuts:'Nüsse','medical supply':'Sanitätsbedarf',tailor:'Schneiderei',florist:'Blumen',weapons:'Jagd & Sport',art:'Kunsthandel',antiques:'Antiquitäten','e-cigarette':'E-Zigaretten',curtain:'Gardinen',tattoo:'Tattoo',laundry:'Waschsalon',stationery:'Schreibwaren',bicycle:'Fahrrad',cannabis:'Cannabis','dry cleaning':'Reinigung',photo:'Foto',tea:'Tee',books:'Bücher',carpet:'Teppiche',tobacco:'Tabak',gift:'Geschenke',outdoor:'Outdoor',kitchen:'Küchen',car:'Autohandel',furniture:'Möbel',perfumery:'Parfümerie',copyshop:'Copyshop',mall:'Einkaufszentrum',pet:'Tierbedarf',music:'Musikinstrumente','funeral directors':'Bestattungen'};
+const POI=`amt|Behörde|Stadtverwaltung Ludwigshafen|49.47958|8.45164|38|ludwigshafen.de
+amt|Gericht|Arbeitsgericht|49.48099|8.45135|124|
+amt|Bürgerbüro|Bürgerbüro Bismarckstraße|49.47891|8.4495|171|www.ludwigshafen.de/buergernah/buergerservice
+amt|Behörde|Zollservicepunkt Ludwigshafen am Rhein|49.48294|8.45048|348|www.zoll.de
+amt|Jobcenter|Jobcenter|49.48004|8.44488|468|
+amt|Ortsvorsteher|Ortsvorsteher Südliche Innenstadt|49.47482|8.45104|562|
+amt|Arbeitsagentur|Agentur für Arbeit|49.48081|8.44267|636|
+amt|Behörde|Stadtarchiv Ludwigshafen|49.47409|8.45207|645|www.ludwigshafen.de/lebenswert/stadtarchiv
+amt|Post|Hauptpostamt|49.48453|8.44319|785|
+amt|Behörde|Gesundheitsamt Ludwigshafen|49.47864|8.43965|857|www.rhein-pfalz-kreis.de
+amt|Gericht|Amtsgericht Ludwigshafen am Rhein|49.4721|8.45226|866|aglu.justiz.rlp.de/de/startseite
+amt|Behörde|Kreisverwaltung Veterinärwesen|49.4785|8.43942|876|
+amt|Behörde|Finanzamt|49.47295|8.44433|922|
+amt|Polizei|Polizeidirektion Ludwigshafen|49.47083|8.45223|1007|polizei.rlp.de
+amt|Polizei|Polizeiinspektion Ludwigshafen 1|49.4708|8.4516|1008|polizei.rlp.de
+amt|Behörde|Kreisverwaltung Rhein-Pfalz-Kreis|49.48452|8.43925|1016|www.rhein-pfalz-kreis.de
+amt|Polizei|Polizei|49.47086|8.45385|1018|
+bil|Kita|Prot. Kindertagesstätte Dietrich Bonhoeffer Zentrum|49.48072|8.45274|138|evkitalu.de/dietrich-bonhoeffer-zentrum
+bil|Musikschule|Städtische Musikschule Ludwigshafen|49.47929|8.44961|142|www.ludwigshafen.de/lebenswert/musikschule
+bil|Bibliothek|Stadtbibliothek Ludwigshafen|49.4811|8.44879|230|
+bil|Schule|Berufsbildende Schule Wirtschaft II Ludwigshafen|49.48045|8.44818|238|www.bbsw2-lu.de
+bil|Kita|Familien-Kindertagesstätte St. Ludwig|49.47986|8.44779|258|kitaportal.ludwigshafen.de/profil/74
+bil|Volkshochschule|Volkshochschule der Stadt Ludwigshafen|49.48245|8.44821|366|www.vhs-lu.de
+bil|Kita|Kindertagesstätte Arche Noah|49.48082|8.44645|370|kitaportal.ludwigshafen.de/profil/52
+bil|Kita|Kindertagesstätte Süd|49.47645|8.45223|386|kitaportal.ludwigshafen.de/profil/13
+bil|Kita|Kindertagesstätte Wörthstraße|49.47759|8.44668|422|kitaportal.ludwigshafen.de/profil/92
+bil|Hochschule|Hochschule für Wirtschaft und Gesellschaft Ludwigshafen|49.48053|8.44558|423|
+bil|Schule|Brüder-Grimm-Schule|49.47589|8.45218|446|www.grimmburg-lu.de/grundschule
+bil|Schule|Schule|49.47487|8.45181|557|
+bil|Schule|Berufsbildende Schule Wirtschaft 1|49.47468|8.45152|577|
+bil|Kita|Schultagesstätte Grimmburg|49.4749|8.44697|637|www.grimmburg-lu.de/schultagesstaette
+bil|Kita|Kindertagesstätte Herz-Jesu|49.47381|8.45164|674|kitaportal.ludwigshafen.de/profil/69
+bil|Schule|Schule|49.47356|8.4519|703|
+bil|Schule|Geschwister-Scholl-Gymnasium|49.47346|8.45233|716|www.schollonline.de
+bil|Schule|Wittelsbachschule|49.47457|8.44554|724|www.gs-wittelsbachschule.de
+bil|Schule|Carl-Bosch-Gymnasium|49.48308|8.44175|780|cbglu.de
+bil|Schule|Erich Kästner-Schule|49.48066|8.44011|816|eks-lu.de
+bil|Kita|Kindertagesstätte Erich-Kästner-Hort|49.48093|8.44017|817|kitaportal.ludwigshafen.de/profil/32
+bil|Kita|Kindertagesstätte Mitte|49.47797|8.44028|827|kitaportal.ludwigshafen.de/profil/7
+bil|Kita|Kindertagesstätte Karl-Krämer-Straße|49.47243|8.45393|848|kitaportal.ludwigshafen.de/profil/37
+bil|Kita|Kindertagesstätte Gneisenaustraße|49.47245|8.45471|860|kitaportal.ludwigshafen.de/profil/36
+bil|Kita|Kindertagesstätte AbbVienzlinge|49.4758|8.4407|892|www.familiengenossenschaft.de/index.php/abbvienzlinge
+bil|Musikschule|School of Music Ludwigshafen|49.47201|8.45397|895|school-of-music-lu.de
+bil|Kita|Kindertagesstätte Heinigstraße|49.48137|8.4377|1000|kitaportal.ludwigshafen.de/profil/34
+gas|Restaurant|Prima Foods|49.48014|8.45143|30|
+gas|Bar|Lotus Shisha Lounge|49.48022|8.45125|39|
+gas|Imbiss|Kumpir & Grill Restaurant|49.4795|8.45128|42|
+gas|Bar|Cafe Lion|49.4803|8.45118|49|
+gas|Café|Café Berliner Platz|49.48037|8.45113|57|
+gas|Café|Kasim's|49.48043|8.45108|65|
+gas|Restaurant · asiatisch|Asia-Bistro Mekong|49.47929|8.45115|66|
+gas|Imbiss · Döner|Safran Döner|49.48029|8.45046|80|
+gas|Restaurant · asiatisch|Street Kitchen Chili|49.48024|8.45024|90|
+gas|Restaurant · italienisch|La Pinseria|49.48072|8.45122|95|lapinseria.de
+gas|Imbiss · Döner|BEST DÖNER|49.4806|8.45018|117|
+gas|Café|Gran Caffe Vittoria|49.48008|8.44973|119|www.gran-caffe-vittoria.de
+gas|Café|ALEX|49.47973|8.44957|130|
+gas|Bar|Ando's Bar Lounge|49.48116|8.4506|154|
+gas|Café|Brückenkaffee|49.47974|8.4537|170|brueckenkaffee.de
+gas|Restaurant · türkisch|City Grill|49.48058|8.44899|188|
+gas|Restaurant · chinesisch|Xi Yang Yang|49.48141|8.44989|201|
+gas|Restaurant · türkisch|Bärlin Döner 2|49.47789|8.45147|220|
+gas|Imbiss|Today Döner|49.4779|8.45088|222|
+gas|Kneipe|Cafe Finale|49.48178|8.45022|227|
+gas|Kneipe|S&P Lounge|49.47778|8.45089|235|
+gas|Café|Eurofinale|49.48116|8.44833|261|
+gas|Restaurant · Fisch|Fischkutter|49.48179|8.44925|262|
+gas|Restaurant · persisch|Paradies|49.48046|8.44761|278|www.persischesrestaurantparadies.de
+gas|Kneipe|Treff Edi 3|49.47728|8.45152|289|
+gas|Kneipe|Almanara Shisha Bar|49.47751|8.44962|291|
+gas|Kneipe|Bistro Zebra|49.47731|8.45226|292|
+gas|Imbiss · türkisch|myManti|49.48039|8.44739|292|
+gas|Café|Duymac's|49.48142|8.44802|296|
+gas|Kneipe|Bistro Blocksberg|49.47731|8.45251|296|
+gas|Café · rumänisch|Lusanum|49.47779|8.45412|305|www.lusanum.de
+gas|Restaurant · vietnamesisch|Huong Viet Imbiss|49.48067|8.44707|322|huong-viet-imbiss.de
+gas|Restaurant · griechisch|Restaurant Sigma|49.48039|8.44661|347|sigma-restaurant.de
+gas|Kneipe|MAX Treff|49.47671|8.45093|353|
+gas|Kneipe|Zwettwohnung|49.47693|8.4485|386|www.zwettwohnung.de
+gas|Café|Café Bistro Josephine|49.47638|8.44954|409|www.cafe-josephine.de
+gas|Restaurant · vietnamesisch|Dong Que|49.483|8.44827|414|restaurant-dongque.de
+gas|Kneipe|Titanic Cafe Bistro|49.47846|8.44602|416|
+gas|Imbiss · libanesisch|Mido's|49.47613|8.45091|417|
+gas|Restaurant · indisch|Agra Mahal|49.48307|8.44818|423|agramahal.de
+gas|Restaurant · japanisch|Reiwa Ramen|49.48109|8.4458|424|www.restaurant-reiwa.com
+gas|Imbiss · Döner|Memo Döner|49.48314|8.44809|433|
+gas|Imbiss · Pizza|Pizzeria Delia|49.47596|8.45122|435|
+gas|Kneipe|Theaterklause|49.47834|8.44576|438|
+gas|Kneipe|ToPolino|49.47669|8.44772|440|
+gas|Kneipe|Zum Adler|49.47582|8.45063|453|
+gas|Café · Eis|Eiscafé Granfonte|49.47577|8.45122|456|
+gas|Kneipe|Dolce Vita|49.47655|8.44759|458|
+gas|Imbiss|Star Döner|49.47575|8.45086|460|
+gas|Kneipe|City-Treff|49.47637|8.44795|460|
+gas|Imbiss · chinesisch|Panda Express|49.48271|8.44638|479|
+gas|Restaurant · italienisch|La Torre da Angelo / Turm 33|49.48134|8.44504|484|www.latorredaangelo.de
+gas|Kneipe|Monaco blue|49.47544|8.45086|493|
+gas|Kneipe|Treff Edi|49.47588|8.44823|497|
+gas|Restaurant · Pizza|Zio Toto|49.47533|8.45085|506|
+gas|Café|Pi|49.48329|8.44661|512|
+gas|Restaurant|Cafe Class Shisha Lounge|49.4836|8.44712|515|
+gas|Kneipe|Palm's|49.47522|8.45081|518|
+gas|Bar|Irland's Own Irish Pub|49.48325|8.44641|518|
+gas|Restaurant|Hemingway's|49.48319|8.4463|519|www.hemingways-lu.de
+gas|Kneipe|Zur Ela|49.47555|8.44841|525|
+gas|Café|Café m.47|49.47503|8.45077|540|
+gas|Imbiss|Leckerecke|49.48321|8.44583|545|
+gas|Kneipe|Corona Shisha Lounge|49.47496|8.4507|548|
+gas|Kneipe|Café bellevue|49.48287|8.44523|554|
+gas|Restaurant · japanisch|Kaoru|49.48477|8.44895|572|www.sushikaoru.de
+gas|Kneipe|Infinity|49.48252|8.44454|574|
+gas|Restaurant · Pizza|Ristorante daMario|49.47471|8.45069|575|www.damario-ludwigshafen.de
+gas|Imbiss · griechisch|Mykonos|49.48248|8.44446|576|
+gas|Bar|Cafe Mellon|49.48213|8.44414|579|
+gas|Restaurant|Kantine Deutsche Telekom|49.47519|8.45493|581|
+gas|Kneipe|black jack 2|49.4821|8.44407|581|
+gas|Bar|Allotino Cafe|49.48446|8.44694|601|
+gas|Kneipe|My Sports Bar|49.47489|8.44805|603|
+gas|Imbiss · Döner|Selman Döner & Pizza|49.47885|8.44307|609|
+gas|Bar|RICH Cafe Bar&More|49.4835|8.44495|614|
+gas|Imbiss|Pita Pita|49.48456|8.44682|615|
+gas|Bar|Theo's Bar|49.48427|8.44598|624|www.europa-hotel.com
+gas|Restaurant|ZuHaus in Ludwigshafen|49.4819|8.44312|636|
+gas|Kneipe|Laterne|49.48263|8.44361|638|
+gas|Restaurant · Pizza|Pizzeria Milano|49.48387|8.44499|640|
+gas|Restaurant · italienisch|Ristorante della Bona|49.47618|8.45821|644|www.ristorante-dellabona.de
+gas|Restaurant|Beer House|49.48461|8.44557|672|
+gas|Café|Palpito|49.47416|8.44784|683|
+gas|Kneipe|Cuba Lounge|49.47758|8.44246|691|
+gas|Imbiss · Fisch|Nordsee|49.48574|8.44785|700|
+gas|Restaurant · griechisch|Mythos Taverna|49.48488|8.44525|710|mythos-taverna.com
+gas|Restaurant · italienisch|La Casa di Laul|49.4851|8.44555|716|www.lacasadilaul.de
+gas|Café|Sky|49.47815|8.44171|723|
+gas|Imbiss|Fritten Company|49.48593|8.44746|731|
+gas|Imbiss|YA Döner|49.486|8.44753|735|
+gas|Imbiss · Döner|Ozan Kebap|49.47529|8.44396|738|
+gas|Bar|barrismo|49.48508|8.44498|739|
+gas|Restaurant · Sushi|Suki|49.47347|8.44804|751|www.suki-ludwigshafen.de
+gas|Imbiss|immergrün|49.48613|8.44716|759|
+gas|Restaurant|Weinstube Breivogel|49.47319|8.44457|889|
+gas|Restaurant · deutsch|Die Inselbastei|49.4739|8.45953|889|dieinselbastei.eatbu.com
+gas|Restaurant · italienisch|PANEO|49.47175|8.4534|915|
+gas|Restaurant|Tabouleh|49.47387|8.44199|950|
+ges|Zahnarztpraxis|Prof. Dr. Dhom & Kollegen|49.47947|8.45139|45|www.prof-dhom.de
+ges|Arztpraxis|Lungenzentrum Ludwigshafen|49.48039|8.45025|99|www.lungenzentrum-lu.de
+ges|Apotheke|Löwen Apotheke|49.48067|8.45037|114|
+ges|Arztpraxis|Beate Häffner-Müller|49.48028|8.44988|116|www.praxis-mueller.com
+ges|Arztpraxis|Dr. H. H. Mey|49.48068|8.4503|118|
+ges|Zahnarztpraxis|Dr. Murat Kont|49.48071|8.45033|119|www.dr-kont.de
+ges|Arztpraxis|Dr. med. Jürgen Müller|49.48027|8.44981|120|www.praxis-mueller.com
+ges|Psychotherapie|Rainer u. Beate Sutter|49.48071|8.45027|122|
+ges|Apotheke|Ludwigsapotheke|49.47996|8.44915|159|
+ges|Arztpraxis|Praxisgemeinschaft Dr. Oberdorf / Dr. Avenius|49.48166|8.45037|212|
+ges|Arztpraxis|Augen Curschmann|49.48201|8.44993|259|www.augen-curschmann.de
+ges|Apotheke|Anker-Apotheke|49.48154|8.44876|263|
+ges|Apotheke|Lusanum Apotheke|49.4778|8.45355|280|www.lusanum.de/geschaefte/apotheke
+ges|Arztpraxis|Dr. Holger Steiner, Dr. Christine Borgmann|49.47778|8.4538|292|www.augenarzt-steiner-borgmann.de
+ges|Arztpraxis|Dr. Katharina Wiest, Gabriele Meng|49.47777|8.45377|292|www.lusanum.de/aerzte/dermatologen
+ges|Arztpraxis|Dr. med. Robert Grabs, Dr. med. Peter P. Chatzopoulus|49.47779|8.45383|293|www.plastische-chirurgie-4u.de
+ges|Arztpraxis|Dr. Elisabeth Taubert|49.47777|8.45384|294|www.lusanum.de/aerzte/psychotherapeutin
+ges|Arztpraxis|Privatpraxis Osteopathie|49.47775|8.4538|294|www.lusanum.de/aerzte/osteopathische-medizin
+ges|Arztpraxis|Dr. Leib, Dr. Pardos Limbeck, Dr. Wengerofsky und Kollegen|49.47779|8.45387|295|www.frauenaerzte-ludwigshafen.de
+ges|Arztpraxis|Dr. Ute Braun, Dr. Karl Hünermund, Dr. Lutz Stemler|49.47773|8.45377|295|www.lusanum.de/aerzte/onkologen
+ges|Arztpraxis|Dr. Ansgar Römer|49.47775|8.45385|297|www.frauenarzt-roemer.de
+ges|Arztpraxis|Dr. Guenter Zimmer|49.47772|8.45378|297|www.lusanum.de/aerzte/urologe
+ges|Ergotherapie|ergoteam LU|49.47773|8.45381|297|www.ergoteam-lu.de
+ges|Arztpraxis|Dr. Dieter Schlauch, Dr. Markus Sellinger|49.47775|8.45389|298|www.lusanum.de/aerzte/gastroenterologen
+ges|Hebammenpraxis|Hebammenpraxis im Lusanum|49.47773|8.45385|299|www.lusanum.de/therapeuten/hebammenpraxis
+ges|Arztpraxis|Dr. Dieter Ante, Dr. Charis Eibl, Peter Amann|49.47775|8.45393|300|www.lusanum.de/aerzte/gefaesschirurgie
+ges|Arztpraxis|Dr. Faraj Bara|49.47769|8.45383|301|www.lusanum.de/aerzte/orthopaede
+ges|Zahnarztpraxis|Dr. Matthias Ober|49.47772|8.45389|301|www.praxis-ober.de
+ges|Logopädie|Logopädie im Lusanum|49.4777|8.45385|301|www.lusanum.de/therapeuten/logopaedinnen
+ges|Arztpraxis|Dr. Helge Armin Kyrberg|49.47773|8.45392|302|www.hno-praxis-ludwigshafen.de
+ges|Arztpraxis|Dr. Dr. Michael Herbring|49.47769|8.45385|302|www.drherbring.de
+ges|Arztpraxis|Internistisch Kardiologische Gemeinschaft|49.47769|8.45388|303|www.internistisch-kardiologische-gemeinschaft.de
+ges|Arztpraxis|Dr. Sabine Hentze|49.47771|8.45392|304|www.lusanum.de/aerzte/humangenetiker
+ges|Arztpraxis|Dr. Sabine Kuntz, Dr. Peter Mehlem|49.47772|8.45394|304|www.kinderarzt-ludwigshafen.de
+ges|Zahnarztpraxis|Rosa & Weiss MVZ GmbH|49.47704|8.45093|316|
+ges|Apotheke|Bären Apotheke|49.47908|8.44714|316|www.baerenapotheke-ludwigshafen.de
+ges|Arztpraxis|Irene Salzmann|49.48243|8.44945|316|
+ges|Heilpraxis|Hans Thomas Heilpraxis|49.47729|8.44914|328|
+ges|Arztpraxis|Lungenzentrum|49.48258|8.4492|339|
+ges|Zahnarztpraxis|Dr. Jessica Körner & Kollegen Kieferorthopädie|49.48263|8.44924|342|www.kfo-koerner.de
+ges|Gesundheit|Gesundheitseinrichtung ohne Namen|49.47681|8.44966|361|
+ges|Psychotherapie|Dipl.-Psych. Sybille Wehrwein|49.47706|8.44878|363|
+ges|Psychotherapie|Dipl.-Psych. Bruno Steinhauer|49.47704|8.44882|364|
+ges|Arztpraxis|Dr. med. Gökhan Ergin, Dr. med. Doraid Abdallah|49.47798|8.44724|364|
+ges|Psychotherapie|Dipl.-Psych. Matthias Roller|49.47702|8.44885|365|
+ges|Arztpraxis|Serkan Celik, Sarah Brunnenkant|49.47796|8.44719|368|
+ges|Physiotherapie|Geibel Wilhelm Physiotherapie|49.47674|8.44964|370|
+ges|Arztpraxis|Praxis Schreml|49.47794|8.44716|371|
+ges|Arztpraxis|Dr. med. Monika Weber|49.47642|8.45085|385|www.dr-monika-weber.de
+ges|Arztpraxis|Dr. med. Claudia Ilkenhans|49.47641|8.45085|386|
+ges|Arztpraxis|Bernd Burkhardt|49.4764|8.45085|387|
+ges|Arztpraxis|Katrin Leschke & Dr. medic. Dorina Lakatos|49.4764|8.45084|388|
+ges|Apotheke|Robert-Koch-Apotheke|49.48198|8.44681|403|www.rokoapo.de/robert-koch-apotheke
+ges|Physiotherapie|N. Borger-Wanner Krankengymnastikpraxis|49.47615|8.45082|415|
+ges|Arztpraxis|Anna Grigoriadou|49.48351|8.447|513|
+ges|Arztpraxis|Dr. med. Hildegard Rademacher, Dr. med. Horst Rademacher|49.47638|8.44622|537|
+ges|Apotheke|Bismarck Apotheke|49.4833|8.44568|560|
+ges|Psychotherapie|RJS Praxis für Psychotherapie|49.47574|8.45638|586|
+ges|Arztpraxis|Dr. Peter Lechtken|49.47492|8.44837|591|
+ges|Arztpraxis|Dr. Petra Unold-Jung|49.4749|8.44837|593|
+ges|Physiotherapie|Rainer Dürrwang Praxis für Krankengymnastik|49.47488|8.44838|595|
+ges|Zahnarztpraxis|Dr. Rossi|49.48464|8.44675|626|
+ges|Arztpraxis|Kinderwunschzentrum|49.48475|8.44671|637|
+ges|Zahnarztpraxis|Marinopoulos Dimitros Zahnarzt|49.47523|8.44566|659|
+ges|Arztpraxis|Dr. Elke Köglmayr|49.4752|8.44571|660|www.praxis-drkoeglmayr.de
+ges|Psychotherapie|Psychotherapeutische Praxis Iris Menges|49.47517|8.44575|661|
+ges|Arztpraxis|Dr. med. André Passerino|49.47406|8.44917|665|
+ges|Apotheke|Wittelsbach-Apotheke|49.4742|8.44838|666|
+ges|Klinik|Zentrum für Radiologische Diagnostik|49.48492|8.44639|666|www.zrd.de
+ges|Arztpraxis|Betriebsarztzentrum Rhein-Neckar|49.4813|8.44209|688|www.b-rn.com
+ges|Arztpraxis|Die Praxis am Ludwigsplatz|49.48472|8.44543|689|diepralu.de
+ges|Arztpraxis|Wiarda|49.47835|8.4421|690|
+ges|Physiotherapie|Juan Toledo|49.48531|8.44589|723|
+ges|Apotheke|Post-Apotheke|49.48494|8.44459|746|www.post-apotheke-ludwigshafen.de
+ges|Psychotherapie|Heike Heil, Diplom-Psychologin|49.47344|8.4479|757|
+ges|Zahnarztpraxis|Dr. Georg und Metzler|49.48559|8.44561|759|www.zahnarztpraxis-lu.de
+ges|Arztpraxis|Dr. med. Bernd Arens|49.47335|8.44819|760|
+ges|Physiotherapie|Physio Vital|49.47299|8.44927|780|
+ges|Zahnarztpraxis|Dr. Jan Ruppert & Dr. Katrin Wacker|49.47303|8.44861|786|
+ges|Arztpraxis|Matthias Ecker|49.47393|8.44393|851|
+ges|Psychotherapie|Dipl.-Psych. Brigitte Schmid-Hagenmeyer|49.4729|8.44637|854|
+ges|Psychotherapie|Dipl.-Psych. Astrid Löwer|49.47284|8.44629|863|
+ges|Psychotherapie|Dipl.-Psych. Birgit Kupper|49.4728|8.44638|865|
+ges|Fußpflege|Fußpflegestudio Sabina Reis|49.47441|8.44272|871|
+ges|Zahnarztpraxis|Zahnarztpraxis Lubinic|49.47195|8.45297|888|
+ges|Arztpraxis|Dr. med. Günter Nofz|49.47263|8.44607|891|
+ges|Logopädie|Ute E. Seubel Praxis für Logopädie|49.47202|8.44869|894|
+ges|Apotheke|Süd-Apotheke|49.47196|8.44863|901|
+ges|Zahnarztpraxis|Zahnärzte Pfarr & Henrich|49.47195|8.44852|904|www.pfarr-henrich.de
+ges|Arztpraxis|Dr. med. Gerhard Schulze|49.47193|8.44858|905|
+ges|Physiotherapie|Physiotherapie Mirjana Rudar|49.47137|8.45152|945|
+ges|Physiotherapie|Mathias Schiller Praxis für Physiotherapie|49.47196|8.44595|962|
+gru|Park|Platanenhain|49.47902|8.45029|122|
+gru|Spielplatz|Spielplatz|49.48132|8.45218|172|
+gru|Park|Grünanlage|49.48154|8.45314|226|
+gru|Park|Grünanlage|49.48213|8.44861|319|
+gru|Sport|Kung Fu To'a Schule|49.47705|8.45263|326|www.kungfuto-a.de
+gru|Spielplatz|Spielplatz|49.48281|8.45182|328|
+gru|Garten|Garten|49.47885|8.45562|329|
+gru|Fitness|American Fitness|49.47685|8.45199|339|www.american-fitness-center.de
+gru|Spielplatz|Spielplatz|49.47775|8.45618|421|
+gru|Sporthalle|Schulsporthalle|49.47575|8.45179|459|
+gru|Spielplatz|Spielplatz|49.47575|8.45013|466|
+gru|Sport|Mannerz Sport|49.47624|8.44793|473|www.mannerz-sport.de
+gru|Park|Grünanlage|49.47712|8.4567|493|
+gru|Park|Grünanlage|49.47553|8.45347|506|
+gru|Park|Grünanlage|49.4842|8.44883|514|
+gru|Sporthalle|Sporthalle|49.47505|8.45169|537|
+gru|Park|Grünanlage|49.47556|8.45485|541|
+gru|Fitness|XGYM|49.48305|8.44532|561|
+gru|Garten|hack-museumsgARTen|49.4801|8.44336|577|
+gru|Spielplatz|Spielplatz|49.47507|8.44729|609|
+gru|Park|Grünanlage|49.48455|8.44624|638|
+gru|Park|Grünanlage|49.47555|8.44543|644|
+gru|Park|Wittelsbachplatz|49.47573|8.44465|668|
+gru|Park|Grünanlage|49.47339|8.45006|726|
+gru|Spielplatz|Spielplatz|49.47336|8.44993|732|
+gru|Sporthalle|Schulsporthalle|49.47443|8.44496|761|
+gru|Park|Grünanlage|49.4775|8.44146|762|
+gru|Spielplatz|Spielplatz|49.4738|8.45647|770|
+gru|Spielplatz|Spielplatz|49.47446|8.458|770|
+gru|Spielplatz|Spielplatz|49.47736|8.4414|771|
+gru|Spielplatz|Spielplatz|49.48061|8.44055|785|
+gru|Park|Bürgermeister-Krafft-Platz|49.47284|8.44971|790|
+gru|Park|Grünanlage|49.48559|8.44464|800|
+gru|Garten|Garten|49.47296|8.44793|808|
+gru|Park|Grünanlage|49.47389|8.45772|809|
+gru|Sporthalle|Sporthalle Carl-Bosch-Gymnasium|49.4832|8.44118|823|
+gru|Sporthalle|Schulsporthalle|49.48034|8.43997|824|
+gru|Spielplatz|Spielplatz|49.47317|8.45628|826|
+gru|Park|Grünanlage|49.47304|8.45669|852|
+gru|Park|Danziger Platz|49.48227|8.44004|860|
+gru|Garten|Garten|49.47229|8.44897|860|
+gru|Spielplatz|Spielplatz|49.47423|8.45983|877|
+gru|Spielplatz|Carl-Ludwig-Fickeisen-Platz|49.47921|8.43923|879|
+gru|Spielplatz|Spielplatz|49.48243|8.43978|883|
+gru|Sport|Tanzschule MOHL|49.47192|8.45386|903|
+gru|Sport|YogaSpirits|49.47183|8.45376|911|
+gru|Spielplatz|Spielplatz|49.4797|8.43819|951|
+gru|Garten|Garten|49.47143|8.44879|956|
+gru|Garten|Garten|49.47125|8.45063|960|
+gru|Garten|Garten|49.4716|8.44722|967|
+gru|Park|Bayernplatz|49.47195|8.4454|980|
+gru|Garten|Garten|49.47153|8.44619|999|
+gru|Park|Prälat-Husse-Platz|49.47059|8.44945|1041|
+gru|Park|Grünanlage|49.4734|8.44031|1075|
+han|travel agency|DB Reisezentrum|49.47959|8.45146|32|
+han|hairdresser|Palast II|49.47972|8.45179|36|
+han|jewelry|Juwelier Räth|49.4802|8.45012|96|www.juwelier-raeth.de
+han|beauty|VIVI Nails Beauty|49.48045|8.45029|100|
+han|hifi|Lang Medientechnik|49.47959|8.44986|112|
+han|hardware|Carinas Schneidwaren|49.48014|8.44986|112|
+han|clothes|your choice|49.4802|8.44988|112|
+han|hardware|Rasierer Vöst|49.4801|8.44983|112|
+han|shoes|Schuh-Keller|49.48081|8.45072|114|www.schuh-keller.de
+han|hairdresser|Lyan|49.48056|8.45002|123|
+han|health food|Reformhaus Escher|49.48105|8.45068|140|
+han|department store|Woolworth|49.48105|8.45014|158|
+han|hairdresser|Jamil's Salon|49.48036|8.44929|159|
+han|hearing aids|Hörpunkt Ludwigshafen|49.47986|8.44896|173|
+han|electronics|Rojsat|49.47858|8.44971|186|
+han|variety store|TEDi|49.4813|8.44997|188|
+han|travel agency|Reisebüro Dastan|49.47819|8.45201|193|www.dastancompany.com
+han|hairdresser|ExemplHaar|49.47815|8.4519|196|
+han|ice cream|Vittoria Zentrale|49.48067|8.44889|199|
+han|clothes|Kürzel Moden|49.48159|8.45035|205|
+han|beauty|Diamond Nails|49.4815|8.44983|212|
+han|mobile phone|Handy Shop Rhein Neckar|49.48154|8.4498|217|
+han|massage|Jiraphon Thaimassage|49.48148|8.44959|220|www.jiraphon.de
+han|hairdresser|Friseursalon Aiham|49.48162|8.44975|226|
+han|beauty|Sky Nails|49.48183|8.45009|236|
+han|chemist|Rossmann|49.48172|8.4497|237|www.rossmann.de
+han|beauty|Nail Fashion|49.47833|8.45362|237|
+han|hairdresser|KAMO|49.48187|8.45003|242|
+han|massage|Tanya Thaimassage|49.47766|8.45089|248|
+han|decoration|Dörr Heimtex|49.48157|8.44887|260|www.doerr-lu.de
+han|hairdresser|Romeo & Julia|49.48172|8.44911|262|
+han|hairdresser|Ashtar Style|49.4815|8.44869|264|
+han|clothes|Witt Weiden|49.48142|8.44854|266|www.witt-weiden.de
+han|optician|Augen Curschmann|49.48208|8.44985|269|www.augen-curschmann.de
+han|clothes|Ulla Popken|49.48135|8.44839|270|www.ullapopken.de
+han|beauty|Solar-Sunlight-Sonnenland|49.47745|8.45086|271|
+han|massage|Parnkaew Thaimassage|49.47744|8.45199|274|www.parnkaew-thaimassage.com
+han|hairdresser|Friseur Anders|49.48203|8.44914|288|www.anders-friseur.de
+han|mobile phone|Kiosk 24|49.48199|8.44906|288|
+han|clothes|Zeeman|49.48164|8.4484|290|www.zeeman.com
+han|books|Comic-Zentrum|49.48211|8.44922|293|
+han|optician|Blickpunkt LUSANUM|49.47767|8.45364|295|www.blickpunkt-optiker.de
+han|fashion accessories|forget me nots|49.4772|8.45126|297|www.forgetmenots.de
+han|hearing aids|KIND Hörgeräte|49.47781|8.45401|299|www.kind.com/de
+han|nuts|Babylon Nuts|49.48087|8.44746|302|
+han|medical supply|Heinen + Löwenstein|49.47774|8.45397|303|www.hul.de
+han|tailor|City-Änderungsatelier|49.48084|8.44736|308|
+han|clothes|YVE MODE im Lusanum|49.47759|8.45379|309|www.lusanum.de
+han|beauty|Linh Beauty Nails|49.48081|8.4473|310|
+han|beauty|Kosmetik und Perückenstudio Irmgard Töngi|49.47769|8.45411|314|www.lusanum.de/geschaefte/kosmetik
+han|clothes|Schad Pelz und Leder|49.48241|8.44939|316|www.schad-pelz-leder.de
+han|travel agency|ADAC Geschäftsstelle|49.48017|8.44696|319|
+han|florist|Blumenhaus Scheurer|49.47755|8.45397|320|
+han|clothes|ShirtDesign|49.48249|8.44931|326|www.shirtdesign.de
+han|weapons|Demmer|49.47902|8.44704|326|demmer-shop.de
+han|mobile phone|Anas Multimedia|49.48098|8.4471|331|anasmultimedia.de
+han|mobile phone|Amani TMS|49.47689|8.4513|332|www.amanitms.de
+han|art|Galerie Lauth|49.47682|8.4513|339|galerie-lauth.de
+han|hairdresser|Lixfeld Friseure|49.47886|8.44673|352|www.lixfeld-friseure.de
+han|antiques|Antiquitäten Flohmarkt|49.48207|8.44771|359|
+han|clothes|Say Yes 2 me Hochzeitsmoden|49.48274|8.449|362|
+han|e-cigarette|Leckerdampfen|49.47826|8.44675|377|
+han|e-cigarette|Steamers Lounge|49.48289|8.44881|383|
+han|hairdresser|Jix's|49.48293|8.44879|388|
+han|curtain|Ayer Gardinen|49.48298|8.44873|395|
+han|massage|Sasitorn Thai-Massage|49.47676|8.44873|395|www.sasitorn-thaimassage.de
+han|tattoo|Tattoopalace|49.47633|8.45093|395|
+han|hairdresser|Der Haarteufel|49.4762|8.45124|408|der-haarteufel.de
+han|hairdresser|HAAR GENAU IHR STUDIO|49.47731|8.45566|422|haargenau-ihr-studio.de
+han|laundry|Eco-Express|49.47668|8.44819|422|
+han|stationery|Schreibwaren Probst|49.47605|8.45122|425|
+han|bicycle|Der Fahrradladen|49.47597|8.45087|435|
+han|cannabis|Al Hayba|49.47669|8.44769|441|
+han|beauty|E&E Beauty-Lounge|49.47591|8.45088|442|
+han|dry cleaning|Sauberland|49.48319|8.44797|442|
+han|bicycle|Bike Pulatti|49.47587|8.4509|446|www.pulatti.com
+han|hairdresser|Haarteufel|49.48128|8.44556|447|
+han|hairdresser|Friseur Harth|49.47665|8.44751|453|
+han|clothes|Tolcu|49.48264|8.44648|467|www.tolcu.com
+han|clothes|Schmitt Mode für Männer|49.48356|8.44802|475|
+han|variety store|Kiosk Erbil|49.48252|8.44612|479|
+han|hairdresser|Salon Drucktenhengst|49.47544|8.45118|493|
+han|beauty|Mai Nails|49.48265|8.44597|497|
+han|beauty|Karibik Beautiful|49.47541|8.45052|499|
+han|photo|Fotostudio Backofen|49.48371|8.4478|499|www.fotobackofen.de
+han|tailor|Änderungsschneiderei Aylin|49.4758|8.44825|505|
+han|hairdresser|Silvias Frisör Salon|49.47582|8.44799|511|
+han|travel agency|Reisebüro Blum|49.48369|8.44737|512|
+han|dry cleaning|City-Reinigung Ludwigshafen|49.48348|8.4469|514|
+han|tea|TeeGschwendner|49.48385|8.44763|518|
+han|tailor|Demet's Nähshop|49.47518|8.45111|522|
+han|hairdresser|Barbershop Emad|49.48355|8.44652|538|
+han|hairdresser|Löffler Intercoiffeur|49.48329|8.44605|540|
+han|jewelry|Schröder|49.48326|8.44594|543|
+han|hairdresser|Salva's Haarstudio|49.47483|8.45071|562|www.salvas-haarstudio.de
+han|massage|Natcha Thaimassage|49.47477|8.45071|569|massagethai.de
+han|chemist|Rossmann|49.48316|8.44529|570|www.rossmann.de
+han|shoes|Snipes|49.48468|8.44829|579|
+han|hairdresser|Johny Friseur Salon|49.48352|8.44542|590|
+han|books|Thalia|49.48494|8.44874|594|
+han|tailor|Mouselli|49.48222|8.44394|596|
+han|optician|Brillen.de|49.4836|8.44532|601|
+han|carpet|Trend Home|49.47859|8.44318|607|
+han|clothes|Peek & Cloppenburg|49.48506|8.44861|610|
+han|clothes|Jack & Jones|49.48489|8.4479|612|
+han|beauty|Hany Nails|49.48367|8.44522|612|
+han|tobacco|Tabakwaren Ehrler|49.48372|8.44517|619|
+han|clothes|Triumph|49.48513|8.44848|621|
+han|travel agency|DERTour|49.48376|8.44513|624|
+han|gift|Nanu-Nana|49.48519|8.4483|632|
+han|hairdresser|Directors Cut|49.48381|8.44506|632|
+han|medical supply|Ceragem Ludwigshafen|49.48471|8.44664|637|www.ceragem-ludwigshafen.de
+han|outdoor|Jack Wolfskin|49.48525|8.4483|638|
+han|clothes|C&A|49.48508|8.44757|641|
+han|clothes|N&F Moda|49.48477|8.44659|644|
+han|kitchen|Marqa|49.48484|8.44648|655|
+han|clothes|Street One|49.48539|8.4481|657|
+han|car|Kohlhof Automarkt|49.47393|8.45015|666|
+han|clothes|H&M|49.48529|8.44736|669|
+han|medical supply|DiaExpert|49.48501|8.4463|678|www.diaexpert.de/ludwigshafen
+han|furniture|Istikbal Mobilya|49.48513|8.44613|696|www.istikbal-mobilya.de
+han|hairdresser|Fashion Point Salon|49.47589|8.44379|703|
+han|chemist|dm|49.48557|8.44692|710|
+han|perfumery|Douglas|49.48564|8.44682|720|
+han|copyshop|BB Druck+Service|49.48143|8.44158|727|www.bbdruck.de
+han|tailor|Schneiderei Lodin|49.47564|8.4435|737|
+han|gift|Present Shop|49.48582|8.44657|747|
+han|mall|Rhein-Galerie Ludwigshafen|49.48599|8.44703|749|www.rheingalerie-ludwigshafen.de
+han|copyshop|City Copy|49.48555|8.44569|753|www.city-copy.de
+han|hairdresser|Salon Beauty-Hair|49.47345|8.44794|756|
+han|florist|Blütenzauber|49.47307|8.44952|768|www.bluetenzauber-online.de
+han|clothes|New Yorker|49.48604|8.44634|775|
+han|shoes|Deichmann|49.48617|8.44615|795|
+han|clothes|KiK|49.47569|8.44242|795|
+han|clothes|OLYMP|49.48617|8.44606|798|
+han|hairdresser|Bloom's|49.48628|8.44598|812|
+han|chemist|dm|49.47603|8.44163|822|
+han|stationery|McPaper|49.48638|8.44585|826|
+han|clothes|Hunkemöller|49.48661|8.44648|828|
+han|optician|Fielmann|49.48668|8.44639|838|
+han|pet|Fressnapf|49.47602|8.44131|842|
+han|optician|Apollo-Optik|49.48673|8.44634|844|
+han|chemist|Müller|49.48652|8.44567|846|
+han|clothes|mister*lady|49.48688|8.44614|865|
+han|variety store|TEDi|49.47571|8.44115|870|
+han|department store|TK Maxx|49.48671|8.44544|872|www.tkmaxx.com
+han|clothes|Ernsting's family|49.48695|8.44597|878|
+han|hairdresser|Friseur Team Toni|49.47214|8.44879|879|friseur-team-toni.de
+han|hairdresser|Hairstylist Gerhard|49.47986|8.43917|880|
+han|clothes|Zara|49.48698|8.44578|887|
+han|electronics|Saturn|49.48706|8.44582|894|www.saturn.de
+han|furniture|die stärk|49.47191|8.4536|900|
+han|furniture|Akzentro Garten und Wohnen|49.47183|8.4535|907|
+han|furniture|Küchengalerie Gallei|49.47175|8.45366|918|
+han|music|Musik-Shop Dil Saz Evi|49.47388|8.44239|928|
+han|funeral directors|MC Bestattungen|49.47391|8.44225|934|
+kul|Club|Musikpark|49.47959|8.452|57|www.musikpark-ludwigshafen.de
+kul|Kulturzentrum|Kulturzentrum|49.48096|8.44918|199|
+kul|Club|Reina Club|49.47853|8.454|243|
+kul|Museum|Ernst-Bloch-Zentrum|49.47868|8.45483|284|www.bloch.de
+kul|Theater|Theatersaal Pfalzbau|49.47941|8.4465|354|
+kul|Theater|Pfalzbau|49.47933|8.44604|389|
+kul|Theater|Kammersaal Pfalzbau|49.47954|8.44586|398|
+kul|Theater|Konzertsaal Pfalzbau|49.47952|8.4455|425|
+kul|Museum|Wilhelm-Hack-Museum|49.4798|8.44395|534|www.wilhelmhack.museum
+kul|Konzerthaus|Staatsphilharmonie Rheinland-Pfalz|49.47972|8.44298|605|
+nah|Lebensmittel|Späti Ludwigshafen|49.47972|8.45191|44|
+nah|Bäckerei|Bäckerei Grimminger|49.48039|8.45043|88|
+nah|Kiosk|Kiosk|49.4805|8.45043|96|
+nah|Kiosk|BAMO KIOSK|49.48058|8.45009|120|
+nah|Bäckerei|Balkan Lu Bäckerei|49.48083|8.45029|131|
+nah|Bäckerei|Bäcker Görtz|49.48019|8.44957|134|www.richards-backhaus.de
+nah|Lebensmittel|Faizy Supermarkt|49.48109|8.45064|145|
+nah|Markt|Wochenmarkt|49.47983|8.44933|146|
+nah|Lebensmittel|Lebensmittelgeschäft|49.47991|8.44906|166|
+nah|Supermarkt|Netto Marken-Discount|49.48132|8.45052|173|www.netto-online.de
+nah|Lebensmittel|Nishan Callshop|49.47825|8.45201|186|
+nah|Lebensmittel|East Africa Shop|49.48147|8.44984|209|
+nah|Kiosk|Sabo's|49.47789|8.45155|221|
+nah|Supermarkt|Derya|49.47888|8.44856|230|
+nah|Bäckerei|Otto Schall|49.48181|8.44961|250|
+nah|Supermarkt|ALDI Süd|49.47844|8.44845|263|filialen.aldi-sued.de
+nah|Lebensmittel|Dönmez|49.47695|8.45129|324|
+nah|Kiosk|Kiosk Ludwig|49.47684|8.45094|338|
+nah|Kiosk|Kiosk|49.47682|8.45095|341|
+nah|Feinkost|Kichererbse|49.4766|8.45093|365|kichererbse-naturkost.de
+nah|Metzgerei|Metzgerei Heiss|49.47635|8.45126|391|www.metzgerei-heiss.de
+nah|Feinkost|Privat-Kaffee-Rösterei Mohrbacher|49.47605|8.4509|426|www.mohrbacher.de
+nah|Kiosk|Srud|49.48009|8.44534|435|
+nah|Kiosk|Kiosk|49.47662|8.44788|440|
+nah|Bäckerei|Bäcker Görtz|49.4759|8.45123|441|www.baeckergoertz.de
+nah|Kiosk|Wandi Call Shop|49.4765|8.44799|447|
+nah|Bäckerei|Bäckerei Grimminger|49.47563|8.45118|471|www.grimminger.de
+nah|Supermarkt|PENNY|49.4761|8.44798|485|
+nah|Supermarkt|PENNY|49.48281|8.44576|520|
+nah|Fisch|Fischhaus|49.47561|8.44827|523|
+nah|Bäckerei|Bäcker Görtz|49.48289|8.44569|529|
+nah|Kiosk|KC Kiosk und Café am Rhein|49.48349|8.4464|538|
+nah|Lebensmittel|König Orientalische Lebensmittel|49.48257|8.44463|571|
+nah|Lebensmittel|BG Market Erika|49.48345|8.4455|581|
+nah|Kiosk|Rojiar Kiosk|49.48207|8.44401|584|
+nah|Bäckerei|Korkmaz|49.48203|8.44359|610|
+nah|Supermarkt|Neets|49.48343|8.44397|664|
+nah|Kiosk|KIOSK Mansour|49.47575|8.44363|722|
+nah|Supermarkt|ISI Italienische Spezialitäten|49.47611|8.44264|755|isi-diamant.de
+nah|Kiosk|Kora's|49.47304|8.44951|771|
+nah|Supermarkt|Netto Marken-Discount|49.47597|8.44196|805|www.netto-online.de
+nah|Bäckerei|Otto Schall|49.47585|8.44193|814|
+nah|Lebensmittel|REWE To Go|49.48145|8.43954|871|
+nah|Bäckerei|Bäckerei Görtz|49.4721|8.44874|884|
+nah|Supermarkt|Edeka Manambelona|49.47184|8.44839|919|
+nah|Bäckerei|Barbarossa|49.47167|8.45356|926|
+nah|Supermarkt|Bulgarien Market|49.47378|8.44239|937|
+opv|Straßenbahn + Bus|Berliner Platz|49.48006|8.45065|55|
+opv|Bus|Berliner Platz C|49.48019|8.45073|57|
+opv|Bahn|Ludwigshafen (Rhein) Mitte|49.4793|8.45287|127|
+opv|Straßenbahn|Berliner Platz Süd/Bf LU Mitte|49.47825|8.4509|183|
+opv|Bus|Walzmühle|49.47804|8.45349|255|
+opv|Straßenbahn + Bus|Kaiser-Wilhelm-Straße|49.48155|8.44849|278|
+opv|Bus|Halbergstraße|49.47697|8.45109|323|
+opv|Straßenbahn + Bus|Schützenstraße|49.47778|8.4479|341|
+opv|Straßenbahn + Bus|Pfalzbau/Wilhelm-Hack-Museum|49.48014|8.44569|410|
+opv|Straßenbahn|Ludwigstraße|49.48323|8.44818|438|
+opv|Bus|Paul-Klee-Straße|49.47655|8.45547|475|
+opv|Bus|Bismarckstraße|49.4829|8.4455|540|
+opv|Bus|Rhein-Galerie|49.48461|8.44767|590|
+opv|Bus|Philharmonie|49.47974|8.44261|632|
+opv|Bus|Haltestelle ohne Namen|49.47495|8.44614|664|
+opv|Bus|Arbeitsamt|49.48119|8.44228|672|
+opv|Bus|Max-Pechstein-Straße|49.47428|8.45548|689|
+opv|Straßenbahn + Bus|Wittelsbachplatz|49.47572|8.44405|701|
+opv|Straßenbahn|Rottstraße|49.47382|8.44822|710|
+opv|Bus|Bürgermeister-Krafft-Platz|49.47331|8.45041|733|
+opv|Straßenbahn + Bus|Bürgermeister-Kutterer-Straße|49.47786|8.44152|744|
+opv|Straßenbahn + Bus|Rathaus|49.48486|8.44261|840|
+opv|Straßenbahn|Amtsgericht|49.47164|8.45149|915|
+opv|Straßenbahn|Luitpoldhafen|49.47154|8.45277|932|
+rel|Kirche · katholisch|St. Ludwig|49.48017|8.44854|206|
+rel|Moschee · Sufi|Sufizentrum Ludwigshafen|49.47775|8.44775|351|www.harmonie-der-herzen.de
+rel|Moschee|Deutsch-Marokkanischer Kulturverein|49.48205|8.44721|385|
+rel|Kirche · protestantisch|Melanchthonkirche|49.481|8.44619|393|
+rel|Kirche · freikirchlich|Life International Church|49.48329|8.44989|395|www.life-lu.de
+rel|Moschee|Nizam-i Alem Ayasofya Camii|49.48398|8.44496|649|
+rel|Kirche · katholisch|Herz Jesu|49.47393|8.45136|660|
+rel|Moschee|Albanisch-Islamischer Verein, Moschee|49.48333|8.44374|671|
+rel|Moschee|Ibrahim Xelil Moschee|49.47796|8.44206|704|
+rel|Moschee|Merkez Camii|49.48459|8.44471|711|
+rel|Moschee|Othman Ibn Affan, Arabischer Kulturverein|49.48478|8.44462|731|
+rel|Kirche · mennonitisch|Mennonitengemeinde|49.48253|8.44107|799|
+rel|Kirche · methodistisch|Evangelisch-methodistische Kirche|49.48271|8.44083|823|
+rel|Kirche · evangelikal|Evangelische Stadtmission Ludwigshafen|49.47216|8.45437|884|stadtmission-ludwigshafen.de
+rel|Kirche · protestantisch|Gemeinde DuBistZuhause|49.47215|8.45437|885|dbz-lu.evpfalz.de
+rel|Kirche · protestantisch|Lukaskirche|49.47275|8.44305|993|lu-sued.de
+soz|Beratung|Verbraucherzentrale Rheinland-Pfalz, Beratungsstelle Ludwigshafen|49.48|8.44897|172|www.verbraucherzentrale-rlp.de
+soz|Gemeinschaftszentrum|Johannes-Ronge-Haus|49.47846|8.44765|310|www.freireligioese-pfalz.de
+soz|Senioren|Mundus Seniorenresidenz|49.47684|8.44949|363|
+soz|Verband|Sozialverband VdK|49.48181|8.44702|380|
+soz|Verband|Alzheimer Gesellschaft|49.47639|8.45085|388|
+soz|Ambulante Pflege|Ökumenische Sozialstation Ludwigshafen|49.47723|8.45566|428|www.pflege-ludwigshafen.de
+soz|Betreutes Wohnen|PAMINA betreut leben|49.47715|8.45566|434|www.pamina-betreut-leben.de
+soz|Ambulante Pflege|Häuslicher Intensiv Pflegedienst|49.47641|8.44819|447|www.k-hip.de
+soz|Betreutes Wohnen|Vitanas Senioren Centrum|49.47596|8.45585|543|www.vitanas.de
+soz|Gemeinschaftszentrum|Nukleus|49.48338|8.44494|606|www.nukleus-lu.de
+soz|Verband|DRK Ortsverein Ludwigshafen-Mitte|49.48275|8.44345|655|
+soz|Gemeinschaftszentrum|Kulturzentrum dasHaus|49.48228|8.44283|671|dashaus-lu.de
+soz|Beratung|Pfälzischer Verein für soziale Rechtspflege|49.48272|8.44249|714|
+soz|Jugendtreff|Jugendtreff Westend|49.4788|8.44056|789|
+soz|Jugendtreff|Ludwig-Wolker-Freizeitstätte|49.47276|8.45421|817|www.lu4u.de
+soz|Verband|Malteser Hilfsdienst|49.47355|8.44305|924|www.malteser-ludwigshafen.de
+soz|Senioren|Seniorenwohnhaus Heny Roos|49.48053|8.4372|1025|www.gag-ludwigshafen.de`;
+
+const GEO=`m
+-71,-178 -23,14 -8,12
+-115,-142 20,14 2,4 -2,5 -5,1 -4,-4 2,-30
+-19,28 29,-23 30,-15
+-183,42 22,2 31,7 65,3 12,-3 11,-6 23,-17
+-175,-36 30,0 5,2 40,49
+62,-176 25,-39
+133,-25 -19,-6 -5,-6 -5,-23 -10,-10 -23,-10 -9,-8
+40,-10 -19,6 -9,-2 -15,-36 -6,-9 -23,-23
+99,-111 -14,-13 -11,-5
+55,-120 1,-12
+59,-175 3,-10 10,-17 1,9 14,12
+62,-88 5,7 19,10 7,7 1,11 -4,9
+136,-44 -29,-11 -11,4 -6,7
+150,-6 0,6 3,3 8,0 6,-14 8,-11 0,-4 -7,-6 -32,-12
+-108,-106 -17,16
+40,-10 37,-27
+-200,-6 19,-29
+-125,-90 11,-16 5,-12 7,-34
+62,-176 7,-19 0,-8
+-87,-132 17,14 38,44
+-121,-149 5,15 -1,20
+-108,-106 27,-13 1,-7 -7,-6
+-107,53 -33,-5 -23,-7 -16,-16 -21,-31
+36,-5 -2,3 -35,19 -2,2 1,7 4,7 6,2 38,-2
+16,-28 29,39 1,22
+99,-111 -19,-13 -10,-4 -8,2 -6,11 3,13 6,11 19,21 3,9
+58,-154 -2,19
+53,-131 11,3
+-185,43 58,10 46,3
+150,-6 2,-10
+81,-185 -9,-7 -2,-12
+-98,-168 25,-12
+-73,-180 -22,13 -6,6 -13,50 -15,22
+-129,45 -9,2 -29,-6 -16,1
+105,-25 28,2 19,7
+87,-61 1,9 -2,7 -9,8
+-53,52 -9,3 -19,1
+136,-44 20,6 13,1 14,-20
+-184,-43 -5,-9 -5,-3 -12,2 -12,7
+-29,-70 -48,-51
+16,-28 -9,-12 -14,-7 -22,-23
+48,32 -2,-24 -13,-18 -17,-18
+-80,60 -1,13 -16,15 -55,69
+-82,58 -2,11 -70,87
+77,-37 9,-12 -1,-13 -6,-5 -7,3 -1,10 17,23 5,3 10,1
+62,-83 7,13 2,19 10,14 13,11 11,1
+-107,1 -33,-38 -35,-3
+-140,-77 -21,14 -27,5 -5,6 2,6
+-98,-168 -6,2 -10,-1 -7,-4 -9,-11 14,35 11,9 18,6
+-111,-163 4,3 0,6 -10,40
+-71,-178 -21,14 -7,11 2,13 10,8
+-184,-43 -1,-5 3,-4 21,-5 7,-4 9,-6 10,-12
+-135,-79 -26,20 -36,7 -17,8 -15,14 -10,15
+-238,-15 10,-14 15,-13 11,-6 11,2
+-98,-168 -7,4 -13,0 -4,4 2,12
+-117,-114 -4,13 -8,12
+-115,-142 38,21
+-132,55 -53,-12
+-81,56 -50,-1
+71,-125 40,22 8,7
+-82,41 0,12
+-202,-4 26,36 11,11 9,6 19,4
+183,-57 -64,-39
+177,-63 -55,-33
+59,-175 1,-10 6,-10
+59,-175 -2,19
+57,-156 -4,25
+209,26 -47,-36
+53,-131 0,23 9,25
+62,-176 -4,22
+-94,17 -13,-16
+-203,-6 -6,-10
+-202,-8 19,-27
+-129,-89 -11,12
+-77,-121 -10,-1 -17,11 -4,5
+133,-25 -19,-3 -11,1
+36,-5 -22,11 -56,41 -11,5
+62,-83 5,6 13,7 7,9
+90,-44 -54,39
+208,23 -34,-28 -22,-13
+122,-96 -23,-15
+-235,44 52,-2
+-239,46 54,-3
+-132,-177 11,28
+-135,-79 10,-11
+-140,-77 -19,15 -15,5 -21,3 -17,7 -13,10 -14,18
+55,-120 4,-6 5,-2
+55,-120 1,14 6,18
+-30,-206 -43,26
+-80,55 -1,-17
+183,-57 31,19
+177,-63 27,16
+162,-10 -6,-1 -6,5
+-83,39 -15,-21
+152,-18 -19,-7
+-19,28 -31,19 -17,1 -11,4
+-76,57 16,-1 7,-4
+42,-218 -24,-1 -30,7 -17,8 -42,26
+-186,40 -7,-4 -6,-13
+#
+t
+2,-33 2,-4 3,0
+34,155 13,-15 4,-8 -3,-98
+7,-37 10,11
+7,-37 -11,-4 -7,-8
+-116,33 -15,13 -27,-5 -13,-8
+-11,121 -14,19
+-25,140 11,-11 3,-8
+-137,53 30,5 8,-6 -5,-2 -11,-14
+152,-101 19,-31
+-31,237 65,-82
+-59,-11 -56,47
+-11,-49 -48,38
+-116,33 29,-25 28,-19
+81,-185 72,43
+-190,-87 21,3
+-11,121 7,-39 0,-46
+34,155 15,-23 -3,-99
+-81,201 26,-24 30,-37
+-33,-73 22,24
+#
+r
+77,-186 -6,-3 -7,14
+58,-154 14,8
+48,32 10,0 0,2 -10,0
+53,-131 -17,-2
+78,-166 9,-15
+173,-66 8,-14
+191,-75 10,6 -21,36 13,6
+153,-78 8,-14
+72,-146 11,-17
+99,-129 12,6
+111,-123 10,6
+-166,-108 9,19
+-219,-152 19,19 34,25
+114,-28 -19,7
+16,46 -21,0 -13,-5
+-21,104 98,-2
+-145,-70 1,-8
+207,-45 -5,1 -9,17
+111,-123 9,-15
+111,-146 -47,-29
+60,-185 2,-21
+170,100 -7,2 -6,-14 2,-8
+159,80 30,14
+185,25 2,4 23,15
+185,25 -16,-30 1,-5 8,-10 6,-2 20,13 7,2 4,-3
+-80,107 -1,-24
+18,-27 -19,-30
+-48,-74 23,28
+-89,75 0,5 4,3
+176,-94 20,12
+-79,160 42,36
+23,169 30,23
+101,134 1,11 -3,32 -7,25 -14,23 -11,12
+22,231 26,-32
+-45,108 8,9
+-28,127 3,5
+-37,117 -2,-35
+23,169 -5,-7 -41,-32
+49,45 13,-1
+-69,82 24,26
+-45,108 -3,-5
+-42,55 -15,7 -19,4 -1,6
+-37,54 19,-13
+-21,106 -17,0 -4,5
+-48,103 -5,4 -27,0
+-39,115 -7,1 -31,40 -2,0
+-149,-73 5,-5
+49,56 20,-1
+-4,78 -3,0 -12,-9
+48,135 -14,-10
+-3,58 20,-1
+-3,69 10,-1
+16,46 0,-24
+-4,36 0,-21
+38,103 0,16 -4,6
+-131,87 24,21 27,-1
+-122,93 -35,44
+189,19 -4,6
+191,-119 -10,17
+-48,-75 9,-7
+-114,-22 -47,37
+-44,8 17,23
+-81,0 18,23
+-14,22 -31,21 -8,-7
+53,192 47,-60 1,2
+-82,-21 -10,8
+-75,-31 -9,7 5,7 9,-8
+-63,-17 -12,-14
+-75,-31 -24,-30
+-53,36 -11,8 -10,-13
+-46,30 -10,-13
+-48,-75 -20,-26
+-118,-46 -10,8
+-99,-61 -14,-16 -6,5
+-145,-58 14,-5
+-109,-54 10,-7
+-133,-90 14,18
+-171,-4 -18,-23
+-137,-31 -37,30 19,24
+-156,-16 40,49
+-155,23 15,18 0,4
+-110,2 -46,35
+-155,23 19,-14
+-128,-38 -13,-17 5,-3
+-114,-22 -14,-16
+-5,14 -5,-7 -16,-13
+85,215 -26,-20
+58,197 25,20
+59,195 5,-5 -12,-9 -4,-4 1,-2 40,-51 11,8
+48,199 5,4 5,-6
+64,190 33,-4
+99,177 -30,-24
+154,89 -7,-29 0,-9 -22,-50
+-166,-108 -6,-20 53,-10 -13,-37
+-166,-108 41,-7
+-158,-130 13,33
+-57,62 0,20
+-19,69 1,-28
+159,80 12,-22
+170,100 6,15
+24,117 -25,31
+-19,69 -3,12
+-120,117 9,9 3,13 -1,11
+-80,125 -31,1
+-96,138 0,-12 9,-34 -4,-9
+-128,175 19,-25
+-120,165 -23,-18
+-109,150 30,1
+-100,138 0,22
+-100,160 -18,24
+-52,137 5,13 8,7
+-69,146 23,19
+-58,155 -41,47
+-80,123 29,0
+-61,107 0,16
+-79,225 14,-11 12,-14
+-14,168 -23,28
+-100,160 13,11
+-29,137 -100,2 -6,-3
+-68,188 46,37
+-1,200 -19,-50 -9,-13
+-3,170 15,12
+-37,196 -13,16 2,2
+-44,163 21,16
+-45,190 13,-17
+-34,170 4,-5 13,-6
+-18,138 -37,44
+-82,66 -52,0
+-21,209 15,-18
+-105,-29 52,-41
+171,-58 -13,15
+33,-136 0,-17 -4,-19 -22,-51
+191,54 -5,11
+-68,-101 -5,3 0,3 20,25
+-125,-221 9,25 16,27 3,14 12,19 30,35
+17,-124 13,-7
+-63,23 -11,8
+16,165 -41,-33
+48,199 5,-7
+-14,129 22,-3 5,4
+2,-19 -11,5
+-63,23 19,-15
+-9,-14 -17,8
+-5,-60 -3,-5 -21,-12
+124,-167 -13,21
+171,-44 20,-31
+140,-105 21,13
+120,-138 17,-28
+-9,-14 -10,-22
+161,-92 10,-16
+172,-86 9,6
+200,-90 -9,15
+172,-86 -9,14
+181,-80 10,-16
+161,-92 11,6
+181,-80 10,5
+181,-102 -9,16
+171,-108 10,-17
+101,134 -5,-27
+207,-4 -8,10
+30,-111 13,16
+-35,-18 -11,9
+2,-19 2,-5 -9,-18
+-80,107 1,53
+34,125 -15,-12 -3,-67
+201,62 -5,-17 -14,-7
+9,-138 -41,-90
+-69,-234 10,20 18,26 61,66
+-1,-162 30,-10
+-43,-191 22,-14
+102,-152 9,-15
+122,-96 8,-15
+121,-117 9,6
+150,-120 21,12
+150,-120 -10,15
+150,-120 -10,-6
+99,-129 -8,10
+110,-144 -11,15
+-22,81 42,-1
+-131,87 27,-3 6,2
+-98,51 5,0 11,7
+95,-21 7,1 8,-5
+140,-105 -8,15
+130,-111 10,6
+130,-111 10,-15
+36,45 0,-12
+-37,196 24,19
+154,89 5,-9
+72,-146 27,17
+170,100 16,-35
+186,65 11,6
+186,65 -15,-7
+171,58 11,-20
+-22,81 -17,1
+-205,13 1,20 3,0 -3,-20
+-133,-90 5,-7 -28,-44
+-144,-78 11,-12
+-30,202 64,-77
+180,184 -3,-21 -7,-22 -14,-28 -2,-24
+-128,-38 -7,6
+-131,-63 13,17
+140,-126 12,-21
+120,-138 -10,-6
+140,-126 -10,-6
+-26,-6 -15,-20
+-99,-61 13,-10
+-131,-63 12,-9
+-19,-36 -6,-10
+-67,82 -6,-6
+-81,0 -11,-13
+-92,-13 -13,-16
+95,-21 -8,-4 -11,-15 -13,-26 -20,-29
+212,-35 -9,14
+-105,-29 -13,-17
+16,46 31,-1
+-232,-127 53,33
+130,-132 -9,15
+150,-120 10,-18
+-107,193 28,-33
+-20,126 -2,-45
+-19,69 -18,-14
+-37,117 9,10
+-48,103 -19,-21
+183,31 22,13
+-85,83 16,-1
+203,-21 -10,-6
+220,-79 -39,-23
+171,-108 10,6
+-130,66 -4,15 0,4 3,2
+108,-169 5,-8
+-44,8 18,-14
+-86,42 -12,9
+-39,82 0,-26
+-39,82 -28,0
+-53,36 -10,-13
+-53,36 18,-15
+-105,-29 -9,7
+-5,14 -9,8
+-204,13 -1,-11
+-229,-91 42,6
+-206,1 1,12
+92,122 -3,2
+212,-16 -9,-5
+130,-132 17,-29
+130,-132 -10,-6
+#
+p
+-92,-90 11,14
+-54,-42 -19,14
+-113,-77 15,-11
+-120,-121 -22,-33
+-145,-97 1,3 -12,6
+-161,15 -23,17 -5,-1
+-122,-110 -8,9
+-69,-141 42,44 30,37
+-198,12 -6,1
+-18,-4 8,-3
+15,-6 11,-8
+-8,-15 5,12 -1,10
+-4,7 -12,-4
+-4,7 0,8
+-190,41 -7,-5 8,-5 -6,-4 -3,-20
+-22,-83 9,2
+-37,-82 11,-7 -2,-9
+15,-6 -2,9 -6,-4
+-55,-43 8,-6
+-73,-81 -7,5
+-80,-74 39,48
+-124,-143 -7,-14
+-197,36 -4,-3
+-201,28 6,-1
+15,-6 -8,5
+7,-1 -10,5
+7,-1 -10,-2
+-87,-93 2,1
+-90,-87 6,-5
+5,25 0,8
+14,19 -14,9
+12,3 -4,2
+-203,13 -1,-3 6,-1
+#
+b
+0,26 84,-59 18,-6 13,0 28,7 11,5 15,11 34,32 33,25
+80,-33 -45,33 -36,23
+0,26 -39,25 -19,9 -20,4 -22,0
+-1,23 -31,22 -14,7
+12,-216 11,20 9,28 7,50 5,18 12,23 21,29 21,12 36,3 18,7 28,21 20,20 22,17
+-218,32 11,11 21,8 101,12
+-221,-45 12,-9 8,-3 30,-4 12,-4 15,-12 23,-26 11,-23 3,-23 -3,-19 -6,-11
+-118,62 -86,-11 -16,2 -17,9
+220,8 -55,-38 -31,-13 -11,-3 -14,0 -10,2 -15,8
+171,-24 -22,-11 -19,-5 -21,-2
+152,-31 -39,-9
+-57,57 -17,4 -18,1 -28,-3 -53,-11 -25,3 -14,8 -8,8 -9,14 -10,23
+173,-22 -35,-15 -29,-5
+-46,52 -9,5 -18,4
+214,16 -27,-20
+182,-15 34,29
+187,-4 -35,-27
+-118,62 18,2
+48,-95 6,12 16,20
+40,-114 -4,-12 -7,-10 -28,-28 -27,-56
+48,-95 8,16 14,16
+70,-63 20,15 19,6
+85,-36 12,-4 16,0
+0,26 85,-60 14,-5 13,-1 24,5 23,10 29,23 17,19 28,20
+113,-40 -16,-1 -8,3
+70,-63 20,16 19,5
+171,-24 -16,-10 -26,-10 -24,-1 -16,7
+213,19 -26,-23
+238,33 -40,-30 -16,-18
+181,-16 35,28
+-219,34 12,10 14,6 89,13
+-239,112 17,-37 21,-15 21,-4 22,4 58,4
+-1,23 -45,29
+-84,63 23,-3 11,-4 50,-30
+-46,52 -11,5
+-73,61 16,-4
+-103,63 18,0
+-118,62 -63,-7 -13,1 -16,7 -12,11 -15,30
+79,-33 -80,56
+31,-235 -2,28 9,69
+31,-235 -1,36 8,61
+38,-138 3,21 7,22
+#
+s
+-99,-103 -4,-6 -4,-18 5,-28 6,-9 66,-41 25,-11 19,-4 39,2
+-205,-14 3,12
+148,-42 -20,-6 -21,-16
+6,10 -8,0 -4,-7
+-71,-101 -7,-1 -7,9
+-106,-110 -23,-64 11,31 10,16 9,24
+-18,-35 -6,-10
+-45,56 3,-6 -31,-40
+-209,65 2,-17 7,-14 1,-11
+-129,48 -7,2 -50,-9
+152,-40 13,5
+107,-64 -6,-3 -8,2 -3,4 -1,12 -3,5
+-4,21 -1,10 -31,20
+-208,93 62,49 6,-1
+-202,-2 3,25
+-36,51 -4,5 2,60 16,18 32,25
+-199,25 4,10 9,6
+191,-18 -17,-13
+191,-19 -16,-12
+33,-5 51,-35 2,-4
+86,-44 -8,8 -45,31
+33,-5 -28,14
+107,-64 -4,-3 -8,0 -4,3 -5,20
+25,-221 -21,2 -16,5 -21,10 -65,41 -7,15 -3,26 2,9 6,10
+-85,-93 -6,1 -8,-11
+-205,-14 -2,-15
+-71,-101 -6,-1 -8,9
+-129,48 -25,-1 -32,-7
+-202,-2 0,14 3,13
+-186,40 -7,-4 -6,-13
+-25,-45 7,11
+-6,2 -4,-19 -8,-17
+-6,2 -3,-17 -9,-20
+191,-18 17,9
+148,-42 -21,-7 -20,-15
+162,-43 11,-15 0,-6 -28,-17 -2,-3 1,-4
+-199,25 -9,25 -2,15
+-186,40 -9,-11 -7,-31
+-202,-2 8,35 8,8
+-36,51 30,-19 2,-2 0,-9
+5,154 -26,-20 -16,-17 -2,-62 3,-4
+-26,-38 -49,38
+6,10 27,-15
+-6,3 2,18
+-24,-45 -47,-56
+-129,48 13,-14 34,-28
+-129,48 16,-17 31,-25
+-75,1 48,-38
+-75,8 32,42 -2,5
+-208,-29 3,15
+-25,-45 -46,-56
+-102,-111 11,14
+161,-44 12,-18 -3,-4 -27,-16 1,-6
+-45,55 -17,7 -16,3 -5,5 -31,36 -99,127
+-140,141 61,-75 34,-10
+-210,230 70,-89
+#
+w
+74,296 26,-11 33,-32 17,-40 5,-30 -4,-29 -29,-74 -23,-47 -39,-55 -119,-142 -41,-67 -11,-26`;
+
+const $=s=>document.querySelector(s), NS='http://www.w3.org/2000/svg';
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const proj=(la,lo)=>[(lo-LON)*KX,(LAT-la)*KY];
+
+const pois=POI.trim().split('\n').map((l,i)=>{const [c,s,n,la,lo,d,w]=l.split('|');const [x,y]=proj(+la,+lo);
+  return {i,c,s:c==='han'?(SHOP[s]||s):s,n,x,y,d:+d,w:(w||'').split(';')[0]}});
+
+const svg=$('#map');
+const defs=el('defs',{},svg);
+const gGavo=el('g',{},svg), gWater=el('g',{},svg), gRoads=el('g',{},svg), gKArea=el('g',{},svg), gRail=el('g',{},svg), gRings=el('g',{},svg), gLabels=el('g',{},svg), gPoi=el('g',{},svg), gKonf=el('g',{},svg), gPins=el('g',{},svg), gCenter=el('g',{},svg);
+
+function decode(s){let x=0,y=0;return s.trim().split(' ').map(t=>{const [dx,dy]=t.split(',').map(Number);x+=dx;y+=dy;return [x*GQ,y*GQ]})}
+const geo={};GEO.split('\n#\n').forEach(b=>{const lines=b.trim().split('\n');geo[lines[0]]=lines.slice(1).map(decode)});
+const path=pts=>'M'+pts.map(p=>p[0]+' '+p[1]).join('L');
+
+geo.w.forEach(p=>el('path',{d:path(p),fill:'none',stroke:'var(--water)','stroke-width':270,'stroke-linecap':'round','stroke-linejoin':'round'},gWater));
+const roadStyle=[['r','var(--road-edge)',4.2],['p','var(--road-edge)',4.2],['t','var(--road-edge)',5.4],['m','var(--road-major-edge)',7],
+                 ['r','var(--road)',2.6],['p','var(--road)',2.6],['t','var(--road)',3.8],['m','var(--road-major)',5.2]];
+roadStyle.forEach(([k,col,w])=>{const d=geo[k].map(path).join('');el('path',{d,fill:'none',stroke:col,'stroke-width':w,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'},gRoads)});
+el('path',{d:geo.s.map(path).join(''),fill:'none',stroke:'var(--tram)','stroke-width':1.2,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'},gRail);
+el('path',{d:geo.b.map(path).join(''),fill:'none',stroke:'var(--rail)','stroke-width':1.6,'vector-effect':'non-scaling-stroke'},gRail);
+
+[250,500,750,1000].forEach(r=>{el('circle',{cx:0,cy:0,r,fill:'none',stroke:'var(--ring)','stroke-width':r===1000?1.6:1,'stroke-dasharray':r===1000?'':'5 4',opacity:r===1000?.75:.45,'vector-effect':'non-scaling-stroke'},gRings);
+  const t=el('text',{x:0,y:-r-8,'text-anchor':'middle',class:'lbl rl'},gRings);t.textContent=(r===1000?'1.000':r)+' m'});
+const labels=[[900,-120,'MANNHEIM'],[560,260,'Rhein'],[-620,-520,'Nord/Hemshof'],[-180,640,'Süd'],[-560,180,'Mitte'],[-1050,-60,'West']];
+labels.forEach(([x,y,t])=>{const e=el('text',{x,y,'text-anchor':'middle',class:'lbl area'},gLabels);e.textContent=t;e.dataset.t=t});
+
+const SRC={stadt:{n:'Stadt Ludwigshafen, 26.06.2026',u:'https://ludwigshafen.de/aktuelles/aktuelle-meldungen/gefahrenabwehrverordnung-fuer-den-bereich-berliner-platz-erlassen-die-zeitliche-gueltigkeit-umfasst-sechs-wochen-kvd-kontrolliert-schwerpunktmaessig-in-der-innenstadt'},
+  verl:{n:'Wochenblatt, 10.08.2026',u:'https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/alkoholverbot-nachts-am-berliner-platz-gilt-weiterhin-mehr-kontrollen_a848700'},
+  hist:{n:'MRN-News, 26.04.2011',u:'https://www.mrn-news.de/2011/04/26/ludwigshafen-alkoholverbot-auf-dem-berliner-platz-41397-41397/'},
+  pol:{n:'Polizeipräsidium Rheinpfalz, 27.01.2025',u:'https://www.presseportal.de/blaulicht/pm/117696/5958308'},
+  pal:{n:'Wochenblatt, 22.06.2026',u:'https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/stadt-zieht-ins-palatineo-nach-verhandlungen-beginnen-endlich-die-arbeiten_a805904'},
+  pal2:{n:'Die Rheinpfalz, 23.02.2025',u:'https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-berliner-platz-aus-metropol-wird-palatineo-_arid,5746919.html'},
+  bilelu:{n:'Wochenblatt, 26.07.2023',u:'https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/buergerinitiative-petition-gegen-metropolhochhaus-auf-berliner-platz_a483376'},
+  swr:{n:'SWR Aktuell, 18.05.2026',u:'https://www.swr.de/swraktuell/rheinland-pfalz/ludwigshafen/initiative-berliner-platz-ludwigshafen-fordert-antworten-zu-grossen-bauprojekten-100.html'},
+  init2:{n:'Wochenblatt, 11.12.2025',u:'https://www.wochenblatt-reporter.de/ludwigshafen/c-lokales/mehr-sicherheit-und-attraktivitaet-wir-vom-berliner-platz-hat-neue-plaene-fuer-2026_a690132'},
+  licht:{n:'MRN-News, 12.10.2026',u:'https://www.mrn-news.de/2026/10/12/ludwigshafen-mehr-sicherheit-im-oeffentlichen-raum-spielplatz-am-lichtenberger-ufer-und-berliner-platz-werden-besser-ausgeleuchtet-657627/'},
+  video:{n:'Ludwigshafen24, 2025',u:'https://www.ludwigshafen24.de/ludwigshafen/cdu-fwg-fordern-hightech-videoschutz-antrag-kriminalitaet-brennpunkte-mannheim-vorbild-herbst-pruefung-stadtrat-93765951.html'},
+  netz:{n:'netzpolitik.org, 18.10.2025',u:'https://netzpolitik.org/?p=499547'},
+  rp:{n:'Die Rheinpfalz, 22.10.2026',u:'https://www.rheinpfalz.de/lokal/ludwigshafen_artikel,-so-arbeiten-zivilpolizisten-auf-dem-berliner-platz-_arid,5940959.html'},
+  gef:{n:'Die Rheinpfalz, 11.03.2018',u:'https://www.rheinpfalz.de/artikel/gefaehrlicher-ort-in-ludwigshafen-eine-ganz-normale-nacht-am-berliner-platz/'},
+  kontr:{n:'Polizeidirektion Ludwigshafen, 27.06.2026',u:'https://www.presseportal.de/blaulicht/pm/117688/6303371'},
+  prae:{n:'Polizeipräsidium Rheinpfalz, 22.08.2025',u:'https://www.presseportal.de/blaulicht/pm/117696/6102430'},
+  fwg:{n:'MRN-News, 26.03.2024',u:'https://www.mrn-news.de/2024/03/26/ludwigshafen-fwg-alkohol-und-rauchverbot-am-berliner-platz-527769/'}};
+const KONF=[
+  {k:'gavo',t:'Nächtliches Alkoholverbot',d:'2026 bis 31.10.2026',txt:'Ein nächtliches Alkoholverbot gibt es hier seit 2008 in wechselnden Fassungen. Die Fassung von 2026 beschloss der Stadtrat am 22. Juni. In den Nächten auf Freitag, Samstag und Sonntag sowie vor Feiertagen sind ab 21 Uhr Konsum und Mitführen von Alkohol untersagt, auf dem Berliner Platz zusätzlich Glasbehälter. Sie wurde bis 31. Oktober verlängert. Erfasst sind Platanenhain, Heny-Roos-Passage, Lichtenberger Ufer, Rheinschanzenpromenade, Ernst-Bloch-Platz, Rhein-Galerie und das S-Bahn-Umfeld. Der Umriss ist schematisch nach der Beschreibung der Stadt gezeichnet.',src:[SRC.stadt,SRC.verl,SRC.hist]},
+  {k:'loch',x:-82,y:0,t:'Baugrube Metropol, künftig Palatineo',d:'seit über zehn Jahren',txt:'Nach der Insolvenz des Hochhausprojekts Metropol liegt hier seit mehr als zehn Jahren eine Baugrube, in OpenStreetMap als Großes Loch von Ludwigshafen verzeichnet. 2023 forderte die Bürgerinitiative Lebenswertes Ludwigshafen per Petition einen neuen Bebauungsplan mit breiter Beteiligung. Die Freiburger Unmüßig-Gruppe plant den Büro- und Geschäftskomplex Palatineo, in dem die Stadtverwaltung laut Stadtratsbeschluss vom 22. Juni 2026 Bürgerservices und Standesamt unterbringen will. Als Baubeginn war Herbst 2026 genannt.',src:[SRC.bilelu,SRC.pal2,SRC.pal]},
+  {k:'init',x:18,y:46,t:'Initiative Wir vom Berliner Platz',d:'seit rund 15 Jahren',txt:'Die Initiative hat Sitzelemente und Pflanzkübel auf dem Platz durchgesetzt, kümmert sich mit der Verwaltung um den Platanenhain und legt Wert darauf, den Platz nicht allein negativ zu beschreiben. Für 2026 plante sie Gesprächsrunden mit dem Bauunternehmer des Palatineo und einen Dialog mit dem Oberbürgermeister.',src:[SRC.swr,SRC.init2]},
+  {k:'polstat',x:-10,y:-2,t:'Polizeiliche Fallzahlen',d:'2011 bis 2024',txt:'Nach Angaben des Polizeipräsidiums sank die Zahl der registrierten Straftaten am Platz von rund 400 im Jahr 2011 auf rund 200 im Jahr 2024. Körperverletzungen liegen seit 2019 konstant bei etwa 100 Fällen im Jahr. Die Polizei weist darauf hin, dass Häufungen von Meldungen keine Tendenz anzeigen und der Platz regelmäßig im Fokus der regionalen Medien steht.',src:[SRC.pol]},
+  {k:'gefort',x:-40,y:30,t:'Gefährlicher Ort',d:'2018',txt:'Der Platz war 2018 polizeilich als gefährlicher Ort eingestuft. Diese Einstufung erlaubt Identitätsfeststellungen ohne konkreten Verdacht gegenüber allen, die sich dort aufhalten. Ob sie heute noch gilt, war aus den ausgewerteten Quellen nicht zu ermitteln.',src:[SRC.gef]},
+  {k:'licht',x:-140,y:-28,t:'Beleuchtung verstärkt',d:'Oktober 2026',txt:'Eine Arbeitsgruppe aus Stadtverwaltung und Polizei hat die Beleuchtung auf dem Platz vor allem in dunkleren Bereichen verstärkt. Begründet wird dies mit früheren Vorfällen, einem höheren Entdeckungsrisiko für Täter und einem gestärkten Sicherheitsgefühl.',src:[SRC.licht]},
+  {k:'kamera',x:-28,y:-72,t:'KI-gestützte Kameraüberwachung geplant',d:'Beginn 2027 erwartet',txt:'CDU und FWG beantragten 2025 eine algorithmenbasierte Videoüberwachung nach Mannheimer Vorbild. Im Oktober 2026 kündigten Stadt und Polizei ein Pilotprojekt am Berliner Platz an, sobald eine Rechtsgrundlage besteht. Für das Mannheimer System liegen nach einer Recherche von netzpolitik.org keine Kennzahlen zur Wirksamkeit vor.',src:[SRC.video,SRC.licht,SRC.netz]},
+  {k:'polizei',x:42,y:-18,t:'Kontrollen',d:'2018 bis 2026',txt:'Schwerpunktkontrollen gibt es seit Jahren, 2018 etwa mit 281 kontrollierten Personen an vier Tagen. 2026 kontrollierten Polizei und Ordnungsbehörde gemeinsam, im Oktober berichtete die Rheinpfalz über verdeckt arbeitende Zivilstreifen. 2025 informierte die Polizei an mehreren Tagen mit Präventionsständen auf dem Platz.',src:[SRC.kontr,SRC.rp,SRC.prae]},
+  {k:'halt',x:-51,y:-21,t:'Haltestelle Berliner Platz',d:'2024',txt:'Die FWG forderte 2024 ein dauerhaftes Alkohol- und Rauchverbot an der Haltestelle, weil die Aufenthaltsqualität für viele Wartende unzumutbar sei.',src:[SRC.fwg]},
+  {k:'spiel',x:60,y:-160,t:'Spielplatz Lichtenberger Ufer',d:'Oktober 2026',txt:'Vier neue Lichtmasten, entfernte Hecken und abgebaute Sitzbänke sollen Treffpunkte für Drogenkonsum verhindern. Die Bänke sollen nach Angaben der Stadt mittelfristig zurückkehren.',src:[SRC.licht]},
+  {k:'bloch',x:40,y:180,t:'Ernst-Bloch-Platz',d:'2026',txt:'Der nach dem Ludwigshafener Philosophen der konkreten Utopie benannte Platz liegt im Geltungsbereich des nächtlichen Alkoholverbots, und zwar bereits in der Fassung von 2011.',src:[SRC.stadt,SRC.hist]}
+];
+const pat=el('pattern',{id:'hatch',patternUnits:'userSpaceOnUse',width:22,height:22,patternTransform:'rotate(45)'},defs);
+el('rect',{width:22,height:22,fill:'var(--gavo)','fill-opacity':.06},pat);
+el('line',{x1:0,y1:0,x2:0,y2:22,stroke:'var(--gavo)','stroke-width':5,'stroke-opacity':.26},pat);
+const poly=s=>s.trim().split(' ').map(p=>p.split(',').map(Number)), pts2=a=>a.map(p=>p.join(',')).join(' ');
+const GAVO=poly('-15,220 -115,105 -125,60 -165,-45 -250,-155 -285,-330 -250,-500 -245,-520 -372,-676 -466,-784 -418,-839 -313,-733 -160,-560 0,-700 420,-150 760,300 820,700 560,670 480,600 420,420 300,215 5,195');
+el('polygon',{points:pts2(GAVO),fill:'url(#hatch)',stroke:'var(--gavo)','stroke-width':1.6,'stroke-dasharray':'6 4','vector-effect':'non-scaling-stroke','pointer-events':'none'},gGavo);
+const BP=poly('-56,51 -29,85 -20,78 -19,57 -4,31 22,16 52,14 39,-26 7,-26 -9,-36 -36,-87 -68,-74 -62,-67 -61,-43 -54,-37 -42,28 -78,22 -108,-1 -107,-23 -119,-17 -132,-33 -133,-45 -153,-37 -117,1');
+const EBP=poly('39,200 38,162 61,161 63,145 54,133 85,116 81,110 -3,164 0,170 15,174 20,193');
+const LOCH=poly('-54,-37 -67,-36 -105,-19 -110,-10 -108,-1 -78,22 -42,28');
+[BP,EBP].forEach(p=>el('polygon',{points:pts2(p),fill:'var(--konf)','fill-opacity':.1,stroke:'var(--konf)','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'},gKArea));
+el('polygon',{points:pts2(LOCH),fill:'var(--konf)','fill-opacity':.35,stroke:'var(--konf)','stroke-width':1.4,'vector-effect':'non-scaling-stroke','data-k':'loch',style:'cursor:pointer'},gKArea);
+const gavoLbl=el('text',{x:-150,y:-300,'text-anchor':'middle',class:'lbl gl','data-k':'gavo',style:'cursor:pointer;fill:var(--konf)',tabindex:0,role:'button'},gKonf);gavoLbl.textContent='Alkoholverbot nachts ›';
+KONF.filter(k=>k.x!==undefined).forEach(k=>{const m=el('path',{class:'km',fill:'var(--konf)',stroke:'var(--paper)','data-k':k.k,'data-x':k.x,'data-y':k.y,tabindex:0,role:'button','aria-label':k.t,style:'cursor:pointer'},gKonf);el('title',{},m).textContent=k.t});
+gKonf.addEventListener('keydown',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k&&(e.key==='Enter'||e.key===' ')){e.preventDefault();showK(KONF.find(x=>x.k===k))}});
+function showK(k){if(!k)return;document.querySelectorAll('circle.sel').forEach(c=>c.classList.remove('sel'));card.style.setProperty('--cc','var(--konf)');
+  card.innerHTML=`<button class="x" type="button" aria-label="Schließen">×</button><div class="k">Konflikt und Regulierung · ${esc(k.d)}</div><div class="n">${esc(k.t)}</div><div style="margin:4px 0 8px">${esc(k.txt)}</div><div class="m">${k.src.map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${esc(s.n)}</a>`).join(' · ')}</div>`;
+  card.hidden=false;card.querySelector('.x').onclick=()=>{card.hidden=true};apply()}
+
+const markers={};
+pois.forEach(p=>{const c=el('circle',{cx:p.x,cy:p.y,fill:`var(--c-${p.c})`,stroke:'var(--paper)',tabindex:0,role:'button','aria-label':p.n},gPoi);
+  c.dataset.i=p.i;c.dataset.c=p.c;el('title',{},c).textContent=p.n+' · '+p.s;(markers[p.c]=markers[p.c]||[]).push(c)});
+el('circle',{cx:0,cy:0,fill:'var(--fg)',class:'ctr'},gCenter);
+const ctrL=el('text',{x:0,y:0,'text-anchor':'start',class:'lbl ctrl'},gCenter);ctrL.textContent='Berliner Platz';
+
+// view
+const HOME={x:-1150,y:-1150,w:2300};let vb={...HOME};
+function apply(){const box=svg.getBoundingClientRect();const ar=box.height/box.width||1;svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.w*ar}`);
+  const mpp=vb.w/(box.width||600);
+  pois.forEach(p=>{});
+  gPoi.querySelectorAll('circle').forEach(c=>{c.setAttribute('r',5.6*mpp);c.setAttribute('stroke-width',1.2*mpp)});
+  if(typeof styleTime==='function')styleTime(mpp);
+  gPins.querySelectorAll('.pin').forEach(c=>{c.setAttribute('r',7*mpp);c.setAttribute('stroke-width',2*mpp)});
+  gCenter.querySelector('.ctr').setAttribute('r',6*mpp);ctrL.setAttribute('x',10*mpp);ctrL.setAttribute('y',-8*mpp);ctrL.setAttribute('font-size',12*mpp);ctrL.setAttribute('stroke-width',3*mpp);
+  gRings.querySelectorAll('.rl').forEach(t=>{t.setAttribute('font-size',10.5*mpp);t.setAttribute('stroke-width',3*mpp)});
+  gLabels.querySelectorAll('.area').forEach(t=>{t.setAttribute('font-size',(t.dataset.t==='MANNHEIM'?12:11)*mpp);t.setAttribute('stroke-width',3*mpp);t.setAttribute('letter-spacing',(t.dataset.t==='MANNHEIM'?3:1)*mpp)});
+  gKonf.querySelectorAll('.km').forEach(m=>{const s=8*mpp,x=+m.dataset.x,y=+m.dataset.y;m.setAttribute('d',`M${x} ${y-s}L${x+s} ${y}L${x} ${y+s}L${x-s} ${y}Z`);m.setAttribute('stroke-width',1.5*mpp)});
+  gKonf.querySelectorAll('.gl').forEach(t=>{t.setAttribute('font-size',12.5*mpp);t.setAttribute('stroke-width',3.5*mpp)});
+  const sel=document.querySelector('circle.sel');if(sel){sel.setAttribute('r',7.5*mpp);sel.setAttribute('stroke-width',2.4*mpp)}}
+function zoom(f,cx,cy){const box=svg.getBoundingClientRect();const ar=box.height/box.width||1;
+  const nw=Math.max(260,Math.min(3200,vb.w*f));if(cx===undefined){cx=vb.x+vb.w/2;cy=vb.y+vb.w*ar/2}
+  vb.x=cx-(cx-vb.x)*nw/vb.w;vb.y=cy-(cy-vb.y)*nw/vb.w;vb.w=nw;apply()}
+function toSvg(ev){const box=svg.getBoundingClientRect();return [vb.x+(ev.clientX-box.left)/box.width*vb.w,vb.y+(ev.clientY-box.top)/box.width*vb.w]}
+svg.addEventListener('wheel',e=>{e.preventDefault();const [x,y]=toSvg(e);zoom(e.deltaY>0?1.18:1/1.18,x,y)},{passive:false});
+$('#zin').onclick=()=>zoom(1/1.4);$('#zout').onclick=()=>zoom(1.4);$('#zreset').onclick=()=>{vb={...HOME};apply()};
+let drag=null,moved=false;const ptrs=new Map();let pinch=null;
+svg.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,e);
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)};drag=null;return}
+  drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,t:e.target,id:e.pointerId};moved=false});
+svg.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,e);
+  if(pinch&&ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);if(d>0){const m={clientX:(a.clientX+b.clientX)/2,clientY:(a.clientY+b.clientY)/2};const [x,y]=toSvg(m);zoom(pinch.d/d,x,y);pinch.d=d}moved=true;return}
+  if(!drag)return;const box=svg.getBoundingClientRect();const k=vb.w/box.width;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!moved&&Math.abs(dx)+Math.abs(dy)<=5)return;
+  if(!moved){moved=true;svg.classList.add('dragging');try{svg.setPointerCapture(e.pointerId)}catch(_){}}
+  vb.x=drag.vx-dx*k;vb.y=drag.vy-dy*k;apply()});
+const endPtr=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size){drag=null;svg.classList.remove('dragging')}};
+svg.addEventListener('pointerup',e=>{const wasMoved=moved;const t=(drag&&drag.t)||e.target;endPtr(e);if(wasMoved)return;
+  if(pinMode){addPin(...toSvg(e));return}
+  const kh=t&&t.closest?t.closest('[data-k]'):null;if(kh){showK(KONF.find(k=>k.k===kh.dataset.k));return}
+  const hit=t&&t.closest?t.closest('[data-i]'):null;
+  if(hit)show(pois[+hit.dataset.i]);else{const [x,y]=toSvg(e);const mpp=vb.w/svg.getBoundingClientRect().width;let best=null,bd=14*mpp;
+    pois.forEach(p=>{const m=gPoi.querySelector(`[data-i="${p.i}"]`);if(m&&m.style.display==='none')return;const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p}});if(best)show(best)}});
+svg.addEventListener('pointercancel',endPtr);
+gPoi.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset.i!==undefined){e.preventDefault();show(pois[+e.target.dataset.i])}});
+
+const card=$('#card');
+function show(p){document.querySelectorAll('circle.sel').forEach(c=>c.classList.remove('sel'));
+  const c=gPoi.querySelector(`[data-i="${p.i}"]`);if(c){c.classList.add('sel');gPoi.appendChild(c)}
+  card.style.setProperty('--cc',`var(--c-${p.c})`);
+  card.innerHTML=`<button class="x" type="button" aria-label="Schließen">×</button><div class="k">${CATS[p.c].n} · ${esc(p.s)}</div><div class="n">${esc(p.n)}</div><div class="m">${p.d.toLocaleString('de-DE')} m Luftlinie zum Berliner Platz</div>${ohLine(p)}${p.w?`<div style="margin-top:6px"><a href="https://${esc(p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^www\./,'').split('/')[0])}</a></div>`:''}`;
+  card.hidden=false;card.querySelector('.x').onclick=()=>{card.hidden=true;document.querySelectorAll('circle.sel').forEach(c=>c.classList.remove('sel'));apply()};apply()}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+// layers
+const counts={};pois.forEach(p=>counts[p.c]=(counts[p.c]||0)+1);
+const layersEl=$('#layers');
+Object.entries(CATS).forEach(([k,v])=>{const li=document.createElement('li');
+  li.innerHTML=`<label><input type="checkbox" id="lay-${k}" checked><span class="dot" style="--cc:var(--c-${k})"></span><span>${v.n}</span><span class="cnt">${counts[k]||0}</span></label>`;layersEl.appendChild(li);
+  li.querySelector('input').addEventListener('change',e=>{(markers[k]||[]).forEach(m=>m.style.display=e.target.checked?'':'none')})});
+document.querySelectorAll('[data-count]').forEach(s=>s.textContent=counts[s.dataset.count]);
+const kli=document.createElement('li');kli.innerHTML=`<label><input type="checkbox" id="lay-konf" checked><span class="dot" style="--cc:var(--konf);border-radius:2px;transform:rotate(45deg)"></span><span>Konflikte und Regulierung</span><span class="cnt">${KONF.length}</span></label>`;layersEl.prepend(kli);
+kli.querySelector('input').addEventListener('change',e=>{[gGavo,gKArea,gKonf].forEach(g=>g.style.display=e.target.checked?'':'none')});
+const setAll=on=>Object.keys(CATS).forEach(k=>{const cb=$('#lay-'+k);cb.checked=on;cb.dispatchEvent(new Event('change'))});
+$('#allOn').onclick=()=>setAll(true);$('#allOff').onclick=()=>setAll(false);
+$('#ringsBtn').onclick=e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',on);gRings.style.display=on?'':'none'};
+
+// tabs
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==b.dataset.tab)});
+
+// Öffnungszeiten (OpenStreetMap opening_hours, ausgewertet für die Woche 9. bis 15.11.2026, Stundenraster)
+const OH=`000000001e7c001e7c001e7c001e7c001e7c001e7c 001c7e001c7e001c7e001c7e001c7e001c7e001c7e 03ffe003ffe003ffe003ffe003ffe003ffc000ffc0 01fffc01fffc01fffc01fffc01fffc01fffc000000 000000003fe0003fe0003fe0003fe0003e00000000 00ffe000ffe000ffe000ffe000ffe0007e00000000 00ffe000ffe000ffe000ffe000ffe0000000000000 ffffffffffffffffffffffffffffffffffffffffff 001ff8000000001ff8001ff8001ff8001ff8001ff8 00fff800fff800fff800fff800fff800fff8000000 00fff000fff000fff000fff000fff000fff0000000 00ffc000ffc000ffc000ffc000ffc0000000000000 0000000003800003800003f0000000000000000000 00ffff00ffff00ffff00ffff00ffff007fff007fff 001ff8001ff8001ff8001ff8001ff8000000000ff8 007ff0007ff0007ff0007ff0007ff0007ff0000000 007fc0007fc0007fc0007fc0007fc0007800000000 001ff0001ff0001ff0001ff0001ff0001ff0000000 00ff0000ff0000e00000ff0000ff00000000000000 001ffe000000001ffe001ffe001ffe001ffe001ffe 007bc0007bc0007bc0007bc0007bc0003800000000 000000000000000000000000000000000000000000 000000007fc0003fc0007fc0007fc0007800000000 07ffc007ffc007ffc007ffc007ffc003ff8000f000 01fff001fff001fff001fff001fff001fff0000000 007fc0007fc0007fc0007fc0007fc000f800000000 003ffc003ffc003ffc003ffc003ffc000ffc000000 003ff0003ff0003ff0003ff0003ff0003ff0000000 03fffc03fffc03fffc03fffc03fffc01fffc00fffc 001ffc001ffc001ffc001ffc001ffc001ffc001ffc 007f80007f80007f80007f80007f80003800000000 00000000000000000000007e00007f00007e00007e 007fe0007fe0007fe0007fe0007fe0003fc0000000 000000001fc0001fc0001ff0001fc0003fc0003fc0 007f00007fc0007f00007fc0007f00000000000000 0077c00077000070000077c0007700000000000000 00f38000f30000f00000f38000f000000000000000 00f0c000f0c000f00000f1c000f000000000000000 00f3c000f3c000f3c000f3c000f3c0000000000000 003fc0003fc0003fc0003fc0003fc0003c00000000 003fff803fff803fff803fff803fffc03fff000000 00ff8000ff8000ff8000ff8000f800000000000000 000000007fc0007fc0007fc0007fc000f800000000 00000000003e000c3e000c3e000c3e000c3e000c3e 0061c00061c000600001e1e0007e00000000000000 007bc0007bc0007bc0007bc0007800000000000000 007b80007b80007800007b80007800000000000000 007b00007bc0007800007bc0007c00000000000000 001c7c001c7c000000001c7c001c7c001c7c001c7c 007bc0007bc0007bc0007bc0007bc000f800000000 000000007fc0007800007fc0007fc0007800000000 00ffe000ffe000ffe000ffe000ffe000ffc0000000 c01fffc01fffc01fffc01fffc01fffc01fffc01fff 000000001c7c001c7c001c7c001c7c001c7c001c7c 000000007fc0007fc0007fc0007fc0007800000000 000380007800000380007800000300000000000000 007bc0007bc0007bc0007bc0007bc0000000000000 007fc0007fc0007fc0007fc0007fc0003e00000000 00003f00003f00003f00003f00003fc0003fc00000 01f80000000001f80000000001f800000000000000 01ffc001ffc001ffc001ffc001fe00000000000000 007fc0007fc0007fc0007fc0007fc0003c00000000 001fc0001fc0001fc0001fc0001fc0000000000000 003fe0003fe0003fe0003fe0003fe0003fe0000000 00ff8000ff0000fe0000ff8000f800000000000000 007bc0007bc0007bc0007bc0007bc0007c00000000 003fc0003fc0003fc0003fc0003fc0003e00000000 00f70000f70000f70000f70000f800000000000000 003f80003f80003f80003f80003f80003c00000000 007fc0007fc0007fc0007fc0007fc0007c00000000 00f3c000f3c000f00000f3c000f000000000000000 00fbc000fbc000fbc000fbc000fc00000000000000 07ffc007ffc007ffc007ffc007ffc003ff80000000 007fe0007fe0007fe0007fe0007fe0007fe0000000 003ffc003ffc003ffc003ffc003ffc003ffc003ffc 01fff801fff801fff801fff801fff800ff00000000 0000e00000000000e00000000000e0000000000000 003fc0003fc0003fc0003fc0003fc0003fc0000000 00fbc000fbc000fbc000fbc000fbc000f800000000 c003ffc003ffc003ffc003ffc003fff003fff001ff 0003ff8003ff8003ff8003ff8003ffe003ffe001ff 001ffc001ffc001ffc001ffc001ffc001ffc000ffc 807fff807fff800000000000007fffe07fffe07fff 01fffc01fffc01fffc01fffc01fffc01fffc003ff0 01ffc001ffc001ffc001ffc001ffc001fc00000000 0001ff0001ff0001ff0001ff0001ff0001ff0001ff 000fff000fff000fff000fff000fff000fff000000 0001e00001c00001e00001c00001c0000300000000 03ffc003ffc003ffc003ffc003ffc003f800000000 000000000020000000000020000000007000000000 007700007700007000007700000000000000000000 00f70000f70000f70000f7c0000000000000000000 007f80000000007f80007f80003ff8003ff8007f80 000000000060000000000060000000000000000000 007f00007f00007f00007f00007f00000000000000 0003c00003c00003c00003c00003c0003000000000 00000000f3c000f3c000f3c000f3c000f800000000 07ffc007ffc007ffc007ffc007ffc003f800000000 001ff8001ff8001ff8001ff8001ff8000000001ff8 01ffc001ffc001ffc001ffc001ffc000f800000000 01ffc001ffc001ffc001ffc001ffc001f000000000 007fe0007fe0007fe0007fe0007fe0007e00000000 007f00007f00007e00007f00007e00000000000000 00ffc000ffc000ffc000ffc000ffc000fc00003000 007fc0007fc0007fc0007fc0007fc0000000000000 01ff8001ff8001ff8001ff8001ff80000000000000 00ff00007fc000fe00007fc0007000000000000000 00f3c000f8000003c000f3c000f800000000000000 00f38000f38000f00000f38000f000000000000000 00ff8000ff8000fc0000ff8000ff00000000000000 00ffc000ffc000ffc000ffc000fc00000000000000 00078000078000f00000078000ff00000000000000 0000000000000000000001f000f000000000000000 00f3c000f3c000f00000f3c000fe00000000000000 00018000018000f000000180000100000000000000 00f1c000f1c000f00000718000f000000000000000 01ffc001ffc001ffc001ffc001fc00000000000000 0077c00077c00078000000000077c0007fc0000000 0077000077c00070000077c0007700000000000000 0003c00003c00070000003c00003c0007000000000 00f0c000e0c000000000f0c0007000000000000000 03fffc03fffc03fffc03fffc03fffc03fffc000000 003fe0003fe0003fe0003fe0003fe0003fc0000000 001e7e001e7e001e7e001e7e001e7e0001fe0001fe 0001fe0001fe0001fe0001fe0001fe0001fe000000 007fe0007fe0007fe0007fe0007fe000fe00000000 007780007780007780007780007600000000000000 000000007000000000000380000000000000000000 001ffc001ffc001ffc001ffc001ffc001ffc001fe0 03ffe003ffe003ffe003ffe003ffe001ffe000ffe0 000000001c7e001c7e001c7e001c7e001c7e001c7e 007f80007f80007f80007f80007000000000000000 0077c00077c00077c00077c0007c00000000000000 007fc0007fc0007fc0007fc0007fc0007f00000000 00ffc000ffc000f80000ffc000fc00000000000000 00f1c000f1c000f00000f18000fc00000000000000 00ff8000ff8000ff8000ff8000ff80000000000000 007800007800007800007800007800000000000000 801fff801fff801fff801fff801fff80007f80007f 001c3c001c3c001c3c001c3c001c3c00003c00003c 003b80003b80003b80003b80003b80000000000000 00ffc000ffc000f80000ffc000ff00000000000000 001fe0001fe0001fe0001fe0001fe0000000000000 000fc0000fc0000fc0000fc0000fc0003c00000000 003fc0003fc0003fc0003fc0003fc0007c00000000 000000007fc0007fc0007fc0007fc0007f00000000 007ff0007ff0007ff0007ff0007ff0003fc0000000 001c7e001c7e001c7e001c7e001c7e001c7e001ffc 003fc0003fc0003fc0003fc0003fc0003f00000000 007fc0007fc0007fc0007fc0007fc0007e00000000 007fe0007fe0007fe0007fe0007fe0007f80000000 00f70000f70000f70000f70000f000000000000000 003f80003f80003f80003f80003f80000000000000 00ffc000ffc000f80000ffc000ffc0000000000000 0079c00079c00079c00079c00079c0003c00000000 00f7c000f7c000f78000f78000f800000000000000 00ffe000ffe000ffe000ffe000ffe000ff80007c00 000000001ffe001ffe001ffe001fff001fff001ffe 007fc0007fc0007fc0007fc0007fc0003f00000000 001ffc001ffc001ffc001ffc001ffc000000000000 007bc0007bc0007b00007bc0007c00000000000000 07ffc007ffc007ffc007ffc007ffc007ffc001ff80 000000001c7c001c7c001c7c001c7e0001fe0001fe 00ffe000ffe000ffe000ffe000ffe0003800000000 000000000030000000000030000000000000000000 00f9c000f9c000f80000f9c000f800000000000000 0000000000000000000073c00073c0007800000000 00fff800fff800fff800fff800fff8007ff8000000 07fff007fff007fff007fff007fff007fff0001ff0 000000000000018000000000000000000000000000 f87ffff87ffff87ffff87ffff87fff003ffff83fff 03fffe03fffe03fffe03fffe03fffe00fffc00fffc 003fe0003fe0003fe0003fe0003fe0003ff0000000 007fe0007fe0007fe0007fe0007fe0007fc0000000 007ff8007ff8007ff8007ff8007ff8007ff8000000 001ff8001ff8001ff8001ff8001ff8001ff8000000 01f00001f00001f00001f00001f000000000000000 003800003b00003800003b00003800000000000000 003ffc003ffc003ffc003ffc003ffc003ffc000000 000000003fc0003fc0003fc0003fc0003800000000 0000000003f80003f80003f80003f80003f80003f8 00000000007800007800007800007c00007c000e00 003ff0003ff0003ff0003ff0007ff0007ff0000000 001e00000000001e00001e00000000000000000000 003f00003f00003f00003f00003f00003c00000000 00f70000f70000f78000f700000000000000000000 03ffc003ffc003ffc003ffc003ffc001ff8001ff80 003bc0003bc0003bc0003bc0003bc0001e00000000 007fc0007fc0007fc0007fc0007c00000000000000 003fe0003fe0003fe0003fe0003fe0003f00000000 00fbc000f80000fbc000fbc000fc00000000000000 01ffc001ffc001ffc001ffc001ff8000f800000000 03fffc03fffc03fffc03fffc03fffc03fffc01fffc 01fffe01fffe01fffe01fffe01ffff807fff807ffe 000000007fc0007fc0007ff0007fc0007e00000000 00ffc000ffc000ffc000ffc000ffc0007800000000 003de0003de0003de0003de0003de0000000000000 007ff0007ff0007ff0007ff0007ff0003fe0000000 007f80007f80007f80007f80007f80000000000000 0001fc0001fc0001fc0001fc0001fc0001fc003800 003300003300003300003300003300000000000000 000000001fe0001fe0001fe0001fe0003f00000000 01fff801fff801fff801fff801fff800fc00000000 007fc0007fc0007fc0007fc0007fc0003800000000 00f1c000f1c000f00000f1c000f000000000000000 00ffc000ffc000000000ffc000fc00000000000000 00f00000f00000f00000f1c000f000000000000000 001fff001fff001fff001fff001fff001fff001fff 007ff0007ff0007ff0007ff0007ff0007fe0000000 00ff0000000000000000ffc0000000000000000000 00ff0000ff0000f00000ffc000f000000000000000 007300007300007300007300007800000000000000 01fff801fff801fff801fff801fff801fff8000000 00ffc000ffc000ffc000ffc000ffc0007c00000000 00ff0000ff0000ff0000ff0000fe00000000000000 007fc0007fc0007c00007fc0007fc0000000000000 00f00000f00000f00000070000f000000000000000 00f80000f80000f80000f80000f800000000000000 00f30000f30000f30000f30000f800000000000000 00ff0000ff0000ff0000ff0000ff00000000000000 00f80000f30000f80000f30000f000000000000000 00ff0000ff0000ff0000ff0000f800000000000000
+#
+49.48141,8.44989:0 49.48307,8.44818:1 49.48181,8.44961:2 49.48132,8.45052:3 49.48093,8.44862:4 49.47996,8.44915:5 49.48067,8.45037:6 49.47941,8.44888:7 49.48109,8.4458:8 49.47844,8.44845:9 49.48172,8.4497:10 49.4778,8.45355:11 49.47868,8.45483:12 49.47973,8.44957:13 49.47929,8.45115:14 49.48557,8.44692:15 49.48105,8.45014:15 49.48453,8.44319:16 49.48271,8.44638:17 49.47574,8.45638:18 49.47885,8.44307:19 49.47682,8.4513:20 49.47304,8.44951:21 49.47214,8.44879:22 49.4721,8.44874:23 49.47168,8.44823:7 49.47184,8.44839:24 49.47582,8.44799:25 49.47825,8.45201:26 49.48529,8.44736:27 49.48695,8.44597:27 49.48628,8.44598:15 49.48604,8.44634:27 49.48613,8.44716:27 49.48574,8.44785:27 49.486,8.44753:27 49.48506,8.44861:27 49.48593,8.44746:27 49.48489,8.4479:27 49.48575,8.44662:10 49.48508,8.44757:27 49.48385,8.44903:28 49.48477,8.44895:29 49.48017,8.44696:30 49.47693,8.4485:31 49.47477,8.45071:32 49.4798,8.44395:33 49.48494,8.44459:6 49.48423,8.44754:34 49.48364,8.44656:35 49.48582,8.44657:27 49.47641,8.45085:36 49.4764,8.45084:37 49.47781,8.45401:38 49.47819,8.45201:39 49.47638,8.44954:40 49.47195,8.44852:41 49.47345,8.44794:42 49.47618,8.45821:43 49.4752,8.44571:44 49.47523,8.44566:45 49.47263,8.44607:46 49.47585,8.44193:24 49.48127,8.44757:47 49.48134,8.44504:48 49.48457,8.44326:49 49.47731,8.45566:50 49.48198,8.44681:51 49.47503,8.45077:52 49.47471,8.45069:53 49.47483,8.45071:54 49.48108,8.44785:55 49.47986,8.44896:56 49.48048,8.45106:57 49.48325,8.44641:58 49.47983,8.44933:59 49.48183,8.45009:32 49.48201,8.44993:60 49.48208,8.44985:61 49.48263,8.44924:7 49.48159,8.45035:62 49.48274,8.449:63 49.48166,8.45037:64 49.48187,8.45003:57 49.48241,8.44939:65 49.48249,8.44931:66 49.48225,8.45019:67 49.48014,8.44986:68 49.4802,8.45012:69 49.48071,8.45033:70 49.48039,8.45025:71 49.48056,8.45002:15 49.48019,8.44957:72 49.48045,8.45029:73 49.47575,8.45086:74 49.47704,8.45093:75 49.47785,8.45119:76 49.47591,8.45088:77 49.47605,8.4509:78 49.47778,8.45089:79 49.47751,8.44962:80 49.47766,8.45089:27 49.47529,8.44396:81 49.48319,8.4463:82 49.48344,8.44675:83 49.4766,8.45093:84 49.47744,8.45199:32 49.47731,8.45226:85 49.47731,8.45251:86 49.47705,8.45263:87 49.47563,8.45118:88 49.47666,8.45128:89 49.47499,8.45106:90 49.47409,8.45207:91 49.47416,8.44784:92 49.47447,8.44452:93 49.47441,8.44272:94 49.47518,8.45111:95 49.47544,8.45118:96 49.4759,8.45123:97 49.47596,8.45122:98 49.47605,8.45122:99 49.4762,8.45124:69 49.47635,8.45126:100 49.47689,8.4513:101 49.47767,8.45364:16 49.47759,8.45379:16 49.47779,8.45412:102 49.47755,8.45397:103 49.47769,8.45411:104 49.47781,8.45385:105 49.47778,8.4538:106 49.47777,8.45377:107 49.47773,8.45392:108 49.47775,8.45393:109 49.47775,8.45389:109 49.47779,8.45383:110 49.47769,8.45385:111 49.47771,8.45392:112 49.47772,8.45394:113 49.47773,8.45377:114 49.47772,8.45378:115 49.47772,8.45389:116 49.47773,8.45385:11 49.47773,8.45381:11 49.47307,8.44952:117 49.47296,8.44943:118 49.4742,8.44838:119 49.47303,8.44861:70 49.47492,8.44837:11 49.4749,8.44837:120 49.47311,8.44655:11 49.47668,8.44819:121 49.47676,8.44873:122 49.483,8.44827:123 49.48461,8.44557:124 49.47886,8.44673:125 49.47258,8.44531:126 49.47511,8.44407:127 49.47175,8.4534:128 49.47167,8.45356:129 49.48488,8.44525:130 49.48452,8.44423:131 49.48036,8.44929:73 49.48531,8.44589:132 49.48471,8.44664:133 49.48501,8.4463:134 49.48472,8.44543:135 49.48513,8.44613:27 49.48553,8.44567:136 49.48081,8.45072:133 49.4848,8.44535:137 49.48427,8.44598:138 49.48429,8.44595:139 49.47962,8.45142:140 49.48492,8.44639:141 49.47972,8.45179:15 49.48098,8.4471:142 49.48211,8.44922:143 49.48103,8.4472:144 49.48203,8.44914:145 49.48108,8.44729:146 49.48039,8.44661:147 49.48172,8.44911:73 49.48135,8.44839:148 49.48142,8.44854:149 49.48164,8.4484:150 49.48316,8.44529:10 49.48299,8.44784:1 49.48577,8.44529:151 49.47902,8.44704:152 49.47908,8.44714:153 49.47201,8.45397:154 49.47175,8.45366:148 49.47183,8.4535:148 49.47195,8.45297:155 49.47191,8.4536:148 49.47959,8.45146:156 49.48387,8.44499:157 49.48559,8.44561:11 49.48371,8.4478:158 49.4851,8.44555:159 49.48668,8.44639:63 49.48355,8.44652:73 49.48335,8.44616:160 49.48203,8.44359:161 49.48072,8.45122:162 49.48163,8.44776:163 49.47494,8.44419:164 49.47638,8.44622:165 49.47306,8.44922:166 49.48252,8.44612:167 49.48385,8.44763:148 49.48043,8.45108:168 49.48706,8.44582:27 49.48688,8.44614:27 49.48673,8.44634:63 49.48661,8.44648:27 49.48513,8.44848:27 49.48539,8.4481:27 49.48564,8.44682:27 49.48698,8.44578:27 49.48494,8.44874:27 49.48519,8.4483:27 49.48617,8.44615:27 49.48525,8.4483:27 49.47974,8.4537:169 49.48264,8.44648:63 49.4835,8.44495:170 49.48281,8.44576:3 49.48305,8.44532:171 49.48105,8.45068:69 49.48638,8.44585:172 49.4813,8.44997:173 49.4761,8.44798:3 49.48009,8.44534:174 49.48024,8.45024:175 49.48351,8.447:176 49.48301,8.44609:177 49.48321,8.44583:178 49.48369,8.44737:61 49.48326,8.44594:179 49.47348,8.44764:180 49.47347,8.44804:181 49.47815,8.4519:182 49.48,8.44897:183 49.4801,8.44983:184 49.48181,8.44702:185 49.48265,8.44597:150 49.48289,8.44569:186 49.48356,8.44802:133 49.47826,8.44675:187 49.48243,8.44945:7 49.48477,8.44659:15 49.48465,8.44409:188 49.48475,8.44671:7 49.48293,8.44879:73 49.48227,8.44964:94 49.48484,8.44648:63 49.48289,8.44881:189 49.48258,8.4492:190 49.48464,8.44675:191 49.48147,8.44984:27 49.48083,8.45029:192 49.48109,8.45064:174 49.4815,8.44983:173 49.48376,8.44513:39 49.48349,8.4464:193 49.48329,8.44605:194 49.4833,8.44568:195 49.48338,8.44559:196 49.48367,8.44522:197 49.48381,8.44506:73 49.4836,8.44532:198 49.48352,8.44542:73 49.48372,8.44517:104 49.48468,8.44829:27 49.48652,8.44567:15 49.48671,8.44544:27 49.48617,8.44606:27 49.48555,8.44569:136 49.47378,8.44239:199 49.47391,8.44225:200 49.47587,8.4509:201 49.47947,8.45139:202 49.48348,8.4469:203 49.4829,8.44834:123 49.48319,8.44797:69 49.47798,8.44724:204 49.47796,8.44719:205 49.47794,8.44716:206 49.48343,8.44397:10 49.47196,8.44863:195 49.48207,8.44771:66 49.48217,8.44818:83 49.4739,8.45953:207 49.47611,8.44264:208 49.47295,8.44433:209 49.47263,8.4444:210 49.48452,8.43925:211 49.47597,8.44196:212 49.47393,8.45015:213 49.4723,8.44663:214 49.47602,8.44131:15 49.47575,8.44363:178 49.47564,8.4435:215 49.47571,8.44115:73 49.47603,8.44163:9 49.47569,8.44242:173 49.48004,8.44488:216 49.48599,8.44703:27 49.48313,8.44702:83 49.48237,8.45155:217 49.48361,8.44947:7 49.47864,8.43965:218 49.48644,8.44293:7 49.4811,8.44879:4 49.4795,8.44842:219 49.4785,8.43942:220 49.4721,8.45226:221`;
+const [ohPatTxt,ohRowTxt]=OH.split('\n#\n');const OHP=ohPatTxt.trim().split(' ');const OHMAP=new Map();
+ohRowTxt.trim().split(' ').forEach(r=>{const [k,v]=r.split(':');OHMAP.set(k,v==='x'?null:OHP[+v])});
+pois.forEach(p=>{const raw=POI.trim().split('\n')[p.i].split('|');const key=(+raw[3])+','+(+raw[4]);p.oh=OHMAP.has(key)?OHMAP.get(key):undefined});
+const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+var timeOn=false,tDay=4,tHour=22;
+function isOpen(p,d,h){if(p.c==='opv')return 1;if(!p.oh)return null;const b=d*24+h;return (parseInt(p.oh[b>>2],16)>>(3-(b&3)))&1}
+function gavoActive(d,h){return (d===3&&h>=21)||((d===4||d===5)&&(h<7||h>=21))||(d===6&&h<7)}
+function styleTime(mpp){gPoi.querySelectorAll('circle').forEach(c=>{const p=pois[+c.dataset.i];
+  if(!timeOn){c.style.opacity='';c.setAttribute('fill',`var(--c-${p.c})`);c.setAttribute('stroke','var(--paper)');return}
+  const s=isOpen(p,tDay,tHour);
+  if(s===1){c.style.opacity='';c.setAttribute('fill',`var(--c-${p.c})`);c.setAttribute('stroke','var(--paper)')}
+  else if(s===0){c.style.opacity='.13';c.setAttribute('fill',`var(--c-${p.c})`);c.setAttribute('stroke','var(--paper)')}
+  else{c.style.opacity='.55';c.setAttribute('fill','none');c.setAttribute('stroke',`var(--c-${p.c})`);c.setAttribute('stroke-width',1.6*mpp)}})}
+function updTime(){$('#tLbl').textContent=`${DAYS[tDay].slice(0,2)} ${tHour} Uhr`;$('#timeBtn').setAttribute('aria-pressed',timeOn);
+  const rel=pois.filter(p=>p.c!=='opv'),withOh=rel.filter(p=>p.oh),open=withOh.filter(p=>isOpen(p,tDay,tHour)===1);
+  const nk=open.filter(p=>['soz','rel','bil','amt'].includes(p.c)).length,gas=open.filter(p=>['gas','nah'].includes(p.c)).length;
+  const g=gavoActive(tDay,tHour);
+  $('#tSum').innerHTML=timeOn?`${DAYS[tDay]}, ${tHour} Uhr. Von ${withOh.length} Einrichtungen mit Öffnungszeiten in OpenStreetMap sind <span class="fact">${open.length}</span> geöffnet, davon ${gas} in Gastronomie und Nahversorgung und ${nk} in Bildung, Sozialem, Religion oder Verwaltung. ${rel.length-withOh.length} Einrichtungen ohne Angabe erscheinen als blasse Ringe.${g?' <b class="gavo-on">Zu dieser Zeit gilt das nächtliche Alkoholverbot.</b>':''}`:'Die Zeitansicht blendet geschlossene Einrichtungen aus und zeigt, was zu einer bestimmten Stunde zugänglich ist. Grundlage sind die Öffnungszeiten in OpenStreetMap, ohne Feiertage und Ausnahmen.';
+  apply()}
+$('#timeBtn').onclick=()=>{timeOn=!timeOn;updTime()};
+$('#tDay').onchange=e=>{tDay=+e.target.value;timeOn=true;updTime()};
+$('#tHour').oninput=e=>{tHour=+e.target.value;timeOn=true;updTime()};
+function ohLine(p){if(p.c==='opv')return'';if(!p.oh)return'<div class="m">Keine Öffnungszeiten in OpenStreetMap</div>';
+  return timeOn?`<div class="m">${DAYS[tDay].slice(0,2)} ${tHour} Uhr laut OpenStreetMap ${isOpen(p,tDay,tHour)?'geöffnet':'geschlossen'}</div>`:'<div class="m">Öffnungszeiten in OpenStreetMap hinterlegt</div>'}
+
+// Polizeimeldungen pro Jahr
+(function(){const data=[[2018,22],[2019,7],[2020,2],[2021,4],[2022,9],[2023,2],[2024,4],[2025,18],[2026,11]];const s=$('#ppChart');if(!s)return;
+  const W=360,H=150,L=26,B=22,T=12,max=24,bw=(W-L-8)/data.length;
+  [0,10,20].forEach(v=>{const y=H-B-(v/max)*(H-B-T);el('line',{x1:L,x2:W-4,y1:y,y2:y,stroke:'var(--line)','stroke-width':1},s);const t=el('text',{x:L-6,y:y+3.5,'text-anchor':'end','font-size':10,fill:'var(--muted)','font-family':'var(--f-data)'},s);t.textContent=v});
+  data.forEach(([yr,n],i)=>{const h=(n/max)*(H-B-T),x=L+i*bw+bw*.18,y=H-B-h;el('rect',{x,y,width:bw*.64,height:h,rx:2,fill:yr===2026?'var(--muted)':'var(--konf)','fill-opacity':yr===2026?.5:.85},s);
+    const v=el('text',{x:x+bw*.32,y:y-4,'text-anchor':'middle','font-size':10,fill:'var(--fg)','font-family':'var(--f-data)'},s);v.textContent=n;
+    const t=el('text',{x:x+bw*.32,y:H-B+14,'text-anchor':'middle','font-size':10,fill:'var(--muted)','font-family':'var(--f-data)'},s);t.textContent=yr===2026?'2026*':yr})})();
+
+// Nadelmethode mit Google-Tabelle als gemeinsamer Ablage (Apps-Script-Web-App, siehe Code.gs)
+const PINS={treff:'Hier treffen wir uns',wohl:'Hier fühle ich mich wohl',unsicher:'Hier fühle ich mich unsicher',fehlt:'Hier fehlt etwas',utopie:'Utopie-Ort'};
+const shared=!!(CONFIG.APPS_SCRIPT_URL&&/^https:\/\/script\.google\.com\//.test(CONFIG.APPS_SCRIPT_URL));
+let serverPins=[],localPins=[],myKeys={},online=false,grp='',pinMode=false,busy=false;
+try{localPins=JSON.parse(localStorage.getItem('lu-bp-pins')||'[]').filter(p=>PINS[p.t])}catch(e){localPins=[]}
+try{myKeys=JSON.parse(localStorage.getItem('lu-bp-keys')||'{}')}catch(e){myKeys={}}
+const saveLocal=()=>{try{localStorage.setItem('lu-bp-pins',JSON.stringify(localPins));localStorage.setItem('lu-bp-keys',JSON.stringify(myKeys))}catch(e){}};
+const clean=p=>({id:String(p.id||''),x:+p.x,y:+p.y,t:p.t,n:String(p.n||'').slice(0,80),g:String(p.g||'').slice(0,40)});
+function setStatus(msg){$('#pinStatus').textContent=msg||(shared?(online?'Gemeinsame Karte. Alle Einträge sind für alle sichtbar, die diese Seite öffnen, und werden ohne Namen in einer Tabelle gespeichert. Neue Einträge anderer erscheinen, sobald du auf Einträge aktualisieren klickst.':'Verbindung zur gemeinsamen Tabelle wird aufgebaut.'):'Die Einträge bleiben in diesem Browser, weil keine gemeinsame Ablage eingerichtet ist.')}
+async function loadPins(){if(!shared)return;try{const r=await fetch(CONFIG.APPS_SCRIPT_URL+'?t='+Date.now());const j=await r.json();
+  if(j&&j.ok){serverPins=(j.items||[]).filter(p=>PINS[p.t]&&isFinite(p.x)&&isFinite(p.y)).map(clean);online=true;setStatus();drawPins()}}
+  catch(e){online=false;setStatus('Die gemeinsame Tabelle ist gerade nicht erreichbar. Neue Einträge sind erst wieder möglich, wenn die Verbindung steht.')}}
+async function post(body){const r=await fetch(CONFIG.APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(body)});return r.json()}
+function newKey(){const a=new Uint8Array(16);(window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256|0);return [...a].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function drawPins(){gPins.innerHTML='';const ul=$('#pins');ul.innerHTML='';
+  const src=shared?serverPins.map(p=>({...p,own:!!myKeys[p.id]})):localPins.map((p,i)=>({...p,own:true,li:i}));
+  const all=src.filter(p=>!grp||p.g===grp);
+  all.forEach(p=>{const c=el('circle',{cx:p.x,cy:p.y,class:'pin',fill:p.own?'var(--paper)':`var(--pin-${p.t})`,stroke:`var(--pin-${p.t})`},gPins);el('title',{},c).textContent=PINS[p.t]+(p.n?' · '+p.n:'')+(p.g?' · '+p.g:'')});
+  all.filter(p=>p.own).forEach(p=>{const li=document.createElement('li');li.innerHTML=`<span class="dot" style="--cc:var(--pin-${p.t})"></span><span></span><button type="button">Entfernen</button>`;
+    li.children[1].textContent=(p.n||PINS[p.t])+(p.g?' · '+p.g:'');li.querySelector('button').onclick=()=>removePin(p);ul.appendChild(li)});
+  const others=all.filter(p=>!p.own).length;$('#pinOthers').textContent=others?`Dazu ${others} Einträge anderer Teilnehmender.`:'';
+  const counts={};all.forEach(p=>counts[p.t]=(counts[p.t]||0)+1);$('#pinCounts').textContent=Object.keys(PINS).filter(k=>counts[k]).map(k=>`${PINS[k]} ${counts[k]}`).join(' · ');
+  const gs=[...new Set(src.map(p=>p.g).filter(Boolean))].sort();const sel=$('#pinGroup');const cur=sel.value;
+  sel.innerHTML='<option value="">Alle Gruppen</option>'+gs.map(g=>`<option>${esc(g)}</option>`).join('');sel.value=gs.includes(cur)?cur:'';apply()}
+async function addPin(x,y){const t=$('#pinType').value,n=$('#pinName').value.trim().slice(0,80),g=$('#pinGrp').value.trim().slice(0,40);setPinMode(false);
+  if(!shared){localPins.push({x:Math.round(x),y:Math.round(y),t,n,g});saveLocal();$('#pinName').value='';drawPins();return}
+  if(busy)return;busy=true;const k=newKey();const tmp={id:'tmp'+Date.now(),x:Math.round(x),y:Math.round(y),t,n,g};serverPins.push(tmp);myKeys[tmp.id]=k;drawPins();
+  try{const j=await post({action:'add',t,n,g,x:tmp.x,y:tmp.y,k});delete myKeys[tmp.id];
+    if(j&&j.ok){myKeys[j.id]=k;saveLocal();$('#pinName').value=''}else{setStatus(j&&j.error==='zu_viele'?'Gerade gehen sehr viele Einträge ein. Bitte in einer Minute erneut versuchen.':'Der Eintrag konnte nicht gespeichert werden.')}}
+  catch(e){delete myKeys[tmp.id];setStatus('Der Eintrag konnte nicht gespeichert werden, weil die Tabelle nicht erreichbar ist.')}
+  busy=false;await loadPins()}
+async function removePin(p){if(!shared){localPins.splice(p.li,1);saveLocal();drawPins();return}
+  try{const j=await post({action:'delete',id:p.id,k:myKeys[p.id]});if(j&&j.ok){delete myKeys[p.id];saveLocal()}}catch(e){}await loadPins()}
+function setPinMode(on){pinMode=on;$('#pinMode').setAttribute('aria-pressed',on);$('#pinMode').textContent=on?'Jetzt auf die Karte klicken':'Ort auf der Karte setzen';svg.classList.toggle('pinning',on)}
+$('#pinMode').onclick=()=>setPinMode(!pinMode);
+$('#pinGroup').onchange=e=>{grp=e.target.value;drawPins()};
+$('#pinRefresh').onclick=async e=>{if(!shared){drawPins();return}const b=e.currentTarget;b.disabled=true;b.textContent='Wird geladen';await loadPins();b.disabled=false;b.textContent='Einträge aktualisieren';const t=new Date();$('#pinStatus').textContent+=` Stand ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')} Uhr.`};
+if(shared){loadPins();
+  try{if(CONFIG.BESUCHE_ZAEHLEN&&!sessionStorage.getItem('lu-bp-besuch')){sessionStorage.setItem('lu-bp-besuch','1');post({action:'besuch',seite:'karte'}).catch(()=>{})}}catch(e){}}
+setStatus();drawPins();updTime();
+
+
+(function(){const f=$('#foot');[['IMPRESSUM_URL','Impressum'],['DATENSCHUTZ_URL','Datenschutz']].forEach(([k,l])=>{if(CONFIG[k]){const a=document.createElement('a');a.href=CONFIG[k];a.textContent=l;f.append(' · ',a)}})})();
+new ResizeObserver(apply).observe(svg);
+drawPins();apply();
+</script>
+</body>
+</html>
